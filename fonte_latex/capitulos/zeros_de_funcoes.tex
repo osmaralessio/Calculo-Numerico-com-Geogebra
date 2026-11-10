@@ -1,0 +1,615 @@
+% Capítulo gerado a partir de zeros_de_funcoes.tex (arquivos usados neste capítulo)
+\def\arqBisA{metodoBisseccao_2026_corrigido.ggb}
+\def\arqBisB{metodoBisseccao_2026_correto_and.ggb}
+\def\arqPosA{metodoposicaofalsa_2026_correto.ggb}
+\def\arqPosB{metodoposicaofalsa_2026_correto_and.ggb}
+\def\arqFixo{metodopontofixoJAVASCRIPT_2026_final_corrigido.ggb}
+\def\arqFixoC{metodopontofixoJAVASCRIPT_2026_CORRIGIDO_ex02_CONVERGINDO.ggb}
+\def\arqFixoD{metodopontofixoJAVASCRIPT_2026_CORRIGIDO_ex02_DIVERGINDO.ggb}
+\def\arqNewton{metodoNewtonRaphson_2026_corrigido.ggb}
+\def\arqSec{metododasecanteJAVASCRIPT_2026_CORRIGIDO.ggb}
+\def\pdfLacos{material_lacos_fluxograma.pdf}
+\chapter{Zeros de funções}\label{cap:zeros}
+
+\begin{tcolorbox}[colback=gray!4,colframe=gray!50,title={Como usar os aplicativos e os textos deste capítulo},fonttitle=\bfseries]
+Os quadros laranja \emph{Atividade no GeoGebra} trazem o link \textbf{[abrir o aplicativo]}.
+São nove aplicativos:
+\begin{itemize}[nosep]
+  \item bisseção: \ggbabrir{\arqBisA}{versão 1, em $[1{,}6;\,1{,}8]$} e \ggbabrir{\arqBisB}{versão 2, em $[1{,}2;\,2]$};
+  \item posição falsa: \ggbabrir{\arqPosA}{versão 1} e \ggbabrir{\arqPosB}{versão 2, com tolerâncias};
+  \item ponto fixo: \ggbabrir{\arqFixo}{$\varphi(x)=\frac{2(1+x)}{x+2}$},
+        \ggbabrir{\arqFixoC}{exemplo que converge} e \ggbabrir{\arqFixoD}{exemplo que diverge};
+  \item \ggbabrir{\arqNewton}{Newton-Raphson} e \ggbabrir{\arqSec}{secante}.
+\end{itemize}
+Em todos eles há três botões: \textbf{INICIAR} (restaura os dados iniciais), \textbf{Xk}
+(faz uma iteração por clique, mostrando no gráfico a construção do método) e
+\textbf{JAVASCRIPT} (executa o laço completo e mostra a tabela das iterações numa janela).
+
+Os quadros verdes \emph{Leitura complementar} abrem dois textos de apoio:
+\pdfabrir{\pdfLacos}{laços de repetição e fluxogramas}.
+
+Para que os links funcionem, mantenha este PDF e as pastas \texttt{ggb} e \texttt{complementos}
+juntos e abra o PDF num leitor que permita abrir arquivos externos (Adobe Acrobat Reader, Okular,
+SumatraPDF, Foxit). Os leitores de PDF dos navegadores costumam bloquear esses links; nesse caso,
+abra os arquivos diretamente das pastas.
+\end{tcolorbox}
+
+% ==================================================================
+\section{O problema}
+
+Queremos encontrar $\bar x$ tal que $f(\bar x)=0$, isto é, um \emph{zero} (ou \emph{raiz}) de
+$f$. Para polinômios de grau até 4 há fórmulas, mas para equações como
+\[
+x\ln x-1=0,\qquad x^5-x^3+x^2-3=0,\qquad \cos x=x
+\]
+não há expressão fechada para a solução. Os métodos numéricos produzem uma sequência de
+aproximações $x_0,x_1,x_2,\dots$ que converge para $\bar x$, e param quando a aproximação é
+boa o bastante.
+
+O trabalho tem duas fases:
+\begin{enumerate}[nosep]
+  \item \textbf{isolamento}: encontrar um intervalo $[a,b]$ que contenha uma única raiz
+        (ou uma boa aproximação inicial);
+  \item \textbf{refinamento}: melhorar a aproximação até a precisão desejada.
+\end{enumerate}
+
+Ao longo do capítulo, usaremos a função $f(x)=x^2-2$, cujo zero positivo é
+$\sqrt2\approx1{,}414214$, para comparar os métodos. Como sabemos a resposta, fica fácil
+observar a velocidade de cada um.
+
+% ==================================================================
+\section{Isolamento das raízes}
+
+\begin{teorema}[Bolzano]
+Se $f$ é contínua em $[a,b]$ e $f(a)\,f(b)<0$, então existe pelo menos um
+$\bar x\in(a,b)$ com $f(\bar x)=0$. Se, além disso, $f'$ existe e não muda de sinal em
+$(a,b)$, a raiz é única.
+\end{teorema}
+
+\begin{exemplo}[{: tabela de sinais}]
+Para $f(x)=x^3-9x+3$:
+\begin{center}
+\begin{tabular}{c|ccccccccc}
+$x$ & $-4$ & $-3$ & $-2$ & $-1$ & $0$ & $1$ & $2$ & $3$ & $4$\\ \hline
+$f(x)$ & $-25$ & $3$ & $13$ & $11$ & $3$ & $-5$ & $-7$ & $3$ & $31$\\
+sinal & $-$ & $+$ & $+$ & $+$ & $+$ & $-$ & $-$ & $+$ & $+$
+\end{tabular}
+\end{center}
+Há mudanças de sinal em $[-4,-3]$, $[0,1]$ e $[2,3]$. Como $f$ tem grau 3, essas são as três raízes.
+\end{exemplo}
+
+\begin{exemplo}[{: a função dos aplicativos de bisseção}]
+Para $f(x)=x\ln x-1$ (com $x>0$), temos $f(1)=-1<0$ e $f(2)=2\ln2-1\approx0{,}386>0$.
+Como $f'(x)=\ln x+1>0$ em $[1,2]$, há uma única raiz nesse intervalo:
+$\bar x\approx1{,}763223$. Graficamente, ela é a abscissa do ponto em que $\ln x=\frac1x$.
+\end{exemplo}
+
+\begin{observacao}
+Mudança de sinal é condição suficiente, não necessária: uma raiz de multiplicidade par não
+troca o sinal de $f$. Por exemplo, $f(x)=x^3-5x^2+8x-4=(x-1)(x-2)^2$ (a função dos aplicativos
+de posição falsa) tem uma raiz dupla em $x=2$, onde o gráfico só tangencia o eixo. Os métodos de
+intervalo (bisseção e posição falsa) não conseguem ``cercar'' essa raiz.
+\end{observacao}
+
+% ==================================================================
+\section{Critérios de parada e laços de repetição}
+
+Todos os métodos deste capítulo são \emph{iterativos}: repetem o mesmo cálculo até que um
+critério de parada seja satisfeito. Dada uma tolerância $\varepsilon$, os critérios mais usados são
+\[
+\text{(i) } |x_k-x_{k-1}|<\varepsilon,\qquad
+\text{(ii) } |f(x_k)|<\varepsilon,\qquad
+\text{(iii) } \frac{|x_k-x_{k-1}|}{|x_k|}<\varepsilon,
+\]
+\[
+\text{(iv) } |b_k-a_k|<\varepsilon\ \text{(métodos de intervalo)},
+\]
+sempre acompanhados de um número máximo de iterações, para evitar um laço infinito quando o
+método não converge.
+
+Nenhum critério isolado é perfeito: $|f(x_k)|$ pode ser pequeno longe da raiz (função muito
+``achatada'') e $|x_k-x_{k-1}|$ pode ser pequeno sem que se esteja perto dela (convergência muito
+lenta). Por isso, é comum combinar dois critérios, e a escolha entre \emph{e} e \emph{ou} importa:
+\begin{itemize}[nosep]
+  \item \textbf{continuar enquanto} $|b-a|>\varepsilon_1$ \textbf{ou} $|f(x_k)|>\varepsilon_2$:
+        só para quando \emph{os dois} critérios forem satisfeitos (mais exigente). É o que fazem os
+        aplicativos de bisseção, com as tolerâncias $tol_1$ e $tol_2$;
+  \item \textbf{continuar enquanto} $|x_k-x_{k-1}|>\varepsilon$ \textbf{e} $|f(x_k)|>\varepsilon$:
+        para quando \emph{um} deles for satisfeito (menos exigente). É o que fazem os botões
+        JAVASCRIPT dos aplicativos de posição falsa, secante, Newton e ponto fixo.
+\end{itemize}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[node distance=7mm and 10mm,
+  bloco/.style={draw,rounded corners,fill=blue!6,minimum width=46mm,minimum height=7mm,align=center,font=\small},
+  decisao/.style={draw,diamond,aspect=2.4,fill=orange!10,align=center,font=\small,inner sep=1pt},
+  seta/.style={-{Stealth[length=2.5mm]}}]
+\node[bloco] (ini) {Início: dados $f$, $x_0$ (ou $[a,b]$), $\varepsilon$, $N$};
+\node[bloco,below=of ini] (k0) {$k\leftarrow0$};
+\node[decisao,below=of k0] (teste) {critério de parada\\satisfeito ou $k\ge N$?};
+\node[bloco,below=9mm of teste] (passo) {calcula $x_{k+1}$ pela fórmula do método};
+\node[bloco,below=of passo] (inc) {$k\leftarrow k+1$};
+\node[bloco,right=16mm of teste] (fim) {Fim: $\bar x\approx x_k$};
+\draw[seta] (ini)--(k0); \draw[seta] (k0)--(teste);
+\draw[seta] (teste)--node[right,font=\small]{não}(passo);
+\draw[seta] (passo)--(inc);
+\draw[seta] (inc.west)--++(-12mm,0)|-(teste.west);
+\draw[seta] (teste)--node[above,font=\small]{sim}(fim);
+\end{tikzpicture}
+\caption{Fluxograma comum a todos os métodos iterativos: um laço \texttt{while}.}
+\label{fig:fluxo}
+\end{figure}
+
+Em linguagem de programação, esse fluxograma é um laço \texttt{while}. O botão JAVASCRIPT dos
+aplicativos de bisseção, por exemplo, executa (resumidamente):
+\begin{lstlisting}[language=Java]
+var k = 0;  var xk = (a + b) / 2;
+while (F(xk) !== 0 && (Math.abs(b - a) > tol1 || Math.abs(F(xk)) > tol2) && k < 200) {
+    if (F(a) * F(xk) > 0) { a = xk; } else { b = xk; }   // escolhe o novo intervalo
+    k++;
+    xk = (a + b) / 2;                                    // novo ponto medio
+}
+\end{lstlisting}
+A condição \texttt{k < 200} é o número máximo de iterações, que impede um laço infinito.
+
+\begin{leitura}{laços de repetição e fluxogramas (4 páginas)}{\pdfLacos}
+Introdução aos laços \texttt{for} e \texttt{while}, com exemplos em Python e fluxogramas:
+variável de controle, condição lógica, contador e acumulador, laço infinito, \texttt{break} e
+\texttt{continue}. É a base para ler e escrever o código dos botões JAVASCRIPT dos aplicativos.
+\end{leitura}
+
+% ==================================================================
+\section{Método da bisseção}
+
+Partindo de $[a_0,b_0]$ com $f(a_0)f(b_0)<0$, calculamos o ponto médio
+\[
+x_k=\frac{a_k+b_k}{2}
+\]
+e ficamos com a metade em que há troca de sinal: se $f(a_k)f(x_k)<0$, então
+$[a_{k+1},b_{k+1}]=[a_k,x_k]$; caso contrário, $[a_{k+1},b_{k+1}]=[x_k,b_k]$.
+
+\begin{proposicao}[Estimativa do erro]
+Como o intervalo é dividido ao meio a cada passo,
+$|\bar x-x_k|\le\dfrac{b_k-a_k}{2}=\dfrac{b_0-a_0}{2^{k+1}}$. Para garantir erro menor que
+$\varepsilon$ com o critério $b_k-a_k<\varepsilon$, bastam
+\[
+k>\log_2\frac{b_0-a_0}{\varepsilon}
+\]
+iterações, número que se conhece \emph{antes} de começar.
+\end{proposicao}
+
+\begin{exemplo}[{: três iterações para $f(x)=x^2-2$ em $[1,2]$}]
+$f(1)=-1<0$ e $f(2)=2>0$.
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$k$ & $a_k$ & $b_k$ & $x_k=\frac{a_k+b_k}{2}$ & $f(x_k)$ & novo intervalo\\
+\midrule
+1 & 1 & 2 & 1{,}5 & $\phantom{-}0{,}25$ & $[1;\,1{,}5]$\\
+2 & 1 & 1{,}5 & 1{,}25 & $-0{,}4375$ & $[1{,}25;\,1{,}5]$\\
+3 & 1{,}25 & 1{,}5 & 1{,}375 & $-0{,}109375$ & $[1{,}375;\,1{,}5]$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Em cada linha, o novo intervalo é escolhido pelo sinal de $f(x_k)$. Para obter
+$b_k-a_k<10^{-3}$, seriam necessárias $\log_2(1/10^{-3})\approx9{,}97$, isto é, 10 iterações.
+\end{exemplo}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=11cm,height=6cm,axis lines=middle,xmin=0.8,xmax=2.2,ymin=-1.3,ymax=2.3,
+  xtick={1,1.25,1.375,1.5,2},xticklabels={$1$,$1{,}25$,$1{,}375$,$1{,}5$,$2$},
+  ytick={-1,1,2},grid=both,grid style={gray!20},xlabel={$x$},ylabel={$y$}]
+\addplot[domain=0.85:2.1,samples=100,very thick,azul]{x^2-2};
+\addplot[only marks,mark=*,vermelho] coordinates {(1.5,0)(1.25,0)(1.375,0)};
+\addplot[only marks,mark=*,azul] coordinates {(1,-1)(2,2)(1.5,0.25)(1.25,-0.4375)(1.375,-0.109375)};
+\draw[thick,laranja,|-|] (axis cs:1,-1.1)--(axis cs:2,-1.1) node[right,font=\scriptsize]{$[a_0,b_0]$};
+\draw[thick,laranja,|-|] (axis cs:1,-0.85)--(axis cs:1.5,-0.85);
+\draw[thick,laranja,|-|] (axis cs:1.25,-0.6)--(axis cs:1.5,-0.6);
+\draw[thick,laranja,|-|] (axis cs:1.375,-0.35)--(axis cs:1.5,-0.35);
+\end{axis}
+\end{tikzpicture}
+\caption{Bisseção para $f(x)=x^2-2$: a cada passo o intervalo (em laranja) cai pela metade.}
+\end{figure}
+
+\begin{atividade}{bisseção (versão 1)}{\arqBisA}
+A função é $f(x)=x\ln x-1$. O botão INICIAR usa $[a,b]=[1{,}6;\,1{,}8]$ e
+$tol_1=tol_2=0{,}001$, que podem ser alteradas nas caixas $tol_1$ e $tol_2$. O botão Xk só avança
+enquanto $f(a)f(b)<0$ e ($|b-a|>tol_1$ ou $|f(x_k)|>tol_2$).
+\begin{enumerate}[nosep]
+  \item Clique em INICIAR e depois em Xk repetidas vezes, anotando $a_k$, $b_k$, $x_k$ e
+        $f(x_k)$. Confira: $x_0=1{,}7$; $x_1=1{,}75$; $x_2=1{,}775$; $x_3=1{,}7625$.
+  \item Em que iteração o botão deixa de avançar? (Esperado: $k=8$, com $[a,b]=[1{,}7625;\,1{,}763281]$,
+        $|b-a|\approx0{,}00078$ e $|f(x_k)|\approx0{,}00052$.) Compare com a estimativa
+        $\log_2(0{,}2/0{,}001)\approx7{,}6$.
+  \item Use o botão JAVASCRIPT para ver todas as iterações de uma vez. Ele lê $a$, $b$, $tol_1$ e
+        $tol_2$ do aplicativo; teste com $tol_1=tol_2=10^{-6}$.
+  \item Escolha com os controles deslizantes um intervalo sem troca de sinal, por exemplo
+        $[2;3]$. O que acontece?
+\end{enumerate}
+\end{atividade}
+
+\begin{atividade}{bisseção (versão 2, intervalo maior)}{\arqBisB}
+Mesma função, mas o botão INICIAR usa $[a,b]=[1{,}2;\,2]$, e o texto mostra também os dados da
+iteração inicial ($a_0$, $b_0$, $x_0$). Os dois arquivos de bisseção trazem ainda uma tabela na
+Planilha (menu Exibir $\to$ Planilha) que executa o algoritmo célula a célula, com as colunas
+$a$, $b$, $x_k$, $f(a)$, $f(x_k)$, $f(a)f(x_k)$, $a_k$, $b_k$ e $|b_k-a_k|$.
+\begin{enumerate}[nosep]
+  \item Quantas iterações são necessárias agora? (Esperado: $k=10$.) Por que são duas a mais que na
+        versão 1? (Sugestão: compare $b_0-a_0$ nos dois casos.)
+  \item Na Planilha, a primeira linha da tabela usa as células $B22$ ($a$) e $C22$ ($b$). Digite
+        nelas $1$ e $2$ e acompanhe linha a linha: como cada linha obtém $a_k$ e $b_k$ a partir da
+        anterior? A coluna $|b_k-a_k|$ é sempre dividida por 2?
+\end{enumerate}
+\end{atividade}
+
+% ==================================================================
+\section{Método da posição falsa}
+
+Em vez do ponto médio, usamos o ponto em que a reta que liga $(a,f(a))$ a $(b,f(b))$ corta o
+eixo $x$:
+\[
+x_k=\frac{a_k\,f(b_k)-b_k\,f(a_k)}{f(b_k)-f(a_k)}.
+\]
+A escolha do novo intervalo é igual à da bisseção. Quando $|f(a)|$ e $|f(b)|$ são muito
+diferentes, $x_k$ tende a ficar mais perto da raiz do que o ponto médio.
+
+\begin{exemplo}[{: três iterações para $f(x)=x^2-2$ em $[1,2]$}]
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$k$ & $a_k$ & $b_k$ & $x_k$ & $f(x_k)$ & novo intervalo\\
+\midrule
+1 & 1 & 2 & $4/3\approx1{,}333333$ & $-0{,}222222$ & $[1{,}333333;\,2]$\\
+2 & 1{,}333333 & 2 & 1{,}400000 & $-0{,}040000$ & $[1{,}4;\,2]$\\
+3 & 1{,}4 & 2 & 1{,}411765 & $-0{,}006920$ & $[1{,}411765;\,2]$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Por exemplo, $x_1=\frac{1\cdot2-2\cdot(-1)}{2-(-1)}=\frac43$. Repare que a extremidade $b=2$
+\emph{nunca muda}: como $f$ é convexa, todas as aproximações ficam do mesmo lado da raiz. Assim,
+$b_k-a_k$ não tende a zero, e o critério de parada deve usar $|f(x_k)|$ ou $|x_k-x_{k-1}|$.
+\end{exemplo}
+
+\begin{atividade}{posição falsa (versão 1)}{\arqPosA}
+A função é $f(x)=x^3-5x^2+8x-4=(x-1)(x-2)^2$, com $[a,b]=[0{,}5;\,1{,}7]$ no botão INICIAR. O
+gráfico mostra a reta secante $g$ que define cada $x_k$.
+\begin{enumerate}[nosep]
+  \item Confira $x_1\approx1{,}636364$, $x_2\approx1{,}557282$, $x_3\approx1{,}463714$.
+  \item Qual extremidade fica fixa? Avance 10 iterações: $x_{10}\approx1{,}022$, ainda longe de
+        $\bar x=1$. Por que a convergência é tão lenta aqui? (Observe o formato do gráfico perto de
+        $x=1$ e o valor de $f(a)$.)
+  \item Tente um intervalo que contenha $x=2$, como $[1{,}5;\,2{,}5]$. O aplicativo avisa
+        ``$f(a)f(b)>0$''. Explique usando a raiz dupla.
+  \item O botão JAVASCRIPT resolve outro exemplo, $f(x)=x^2-2$ em $[0{,}5;\,2]$ com $\varepsilon=10^{-4}$.
+        Compare a velocidade com a da função do gráfico.
+\end{enumerate}
+\end{atividade}
+
+\begin{atividade}{posição falsa (versão 2, com tolerâncias)}{\arqPosB}
+Mesma função, agora com $[a,b]=[0{,}2;\,1{,}5]$ e as tolerâncias $tol_1=tol_2=0{,}001$; o texto
+mostra $a_0$, $b_0$, $x_0$ e os erros a cada passo.
+\begin{enumerate}[nosep]
+  \item Faça 5 iterações e confira $x_5\approx1{,}199928$ (com $a=0{,}2$ fixo).
+  \item Compare $|b_k-a_k|$ e $|f(x_k)|$ ao longo das iterações. Qual dos dois critérios seria
+        atingido primeiro?
+\end{enumerate}
+\end{atividade}
+
+% ==================================================================
+\section{Método do ponto fixo}
+
+Reescrevemos $f(x)=0$ numa forma equivalente $x=\varphi(x)$ e iteramos
+\[
+x_{k+1}=\varphi(x_k).
+\]
+Um ponto com $\bar x=\varphi(\bar x)$ é um \emph{ponto fixo} de $\varphi$ e, portanto, um zero
+de $f$. Graficamente, é a interseção de $y=\varphi(x)$ com a reta $y=x$, e as iterações formam o
+diagrama em ``teia'' ou ``escada'' (Figura~\ref{fig:teia}).
+
+\begin{teorema}[Convergência do ponto fixo]
+Se $\varphi$ e $\varphi'$ são contínuas num intervalo $I$ que contém $\bar x$, $\varphi(I)\subset I$
+e $|\varphi'(x)|\le L<1$ para todo $x\in I$, então, para qualquer $x_0\in I$, a sequência
+$x_{k+1}=\varphi(x_k)$ converge para o único ponto fixo $\bar x$ em $I$, e
+$|x_{k+1}-\bar x|\le L\,|x_k-\bar x|$.
+Se $|\varphi'(\bar x)|>1$, as iterações se afastam de $\bar x$.
+\end{teorema}
+
+Se $\varphi'>0$ perto da raiz, as aproximações se aproximam de um só lado (escada); se
+$\varphi'<0$, elas alternam em torno da raiz (teia). Quanto menor $|\varphi'(\bar x)|$, mais rápida
+a convergência.
+
+\begin{exemplo}[{: $f(x)=x^2-2$ com $\varphi(x)=\frac{x+2}{x+1}$ e $x_0=1$}]
+De $x^2=2$ vem $x^2+x=x+2$, isto é, $x=\frac{x+2}{x+1}$. Temos
+$\varphi'(x)=-\frac{1}{(x+1)^2}$, e em $[1,2]$ vale $|\varphi'(x)|\le\frac14<1$; além disso,
+$\varphi([1,2])=[\frac43,\frac32]\subset[1,2]$. Logo, há convergência.
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+$k$ & $x_k$ & $x_{k+1}=\varphi(x_k)$ & $f(x_{k+1})$ & $|x_{k+1}-x_k|$\\
+\midrule
+0 & 1 & 1{,}5 & $\phantom{-}0{,}25$ & 0{,}5\\
+1 & 1{,}5 & 1{,}4 & $-0{,}04$ & 0{,}1\\
+2 & 1{,}4 & $17/12\approx1{,}416667$ & $\phantom{-}0{,}006944$ & 0{,}016667\\
+\bottomrule
+\end{tabular}
+\end{center}
+Como $\varphi'<0$, os iterados alternam em torno de $\sqrt2$, e o erro cai cerca de
+$|\varphi'(\sqrt2)|\approx0{,}17$ a cada passo.
+
+\textbf{Nem toda $\varphi$ serve.} A mesma equação pode ser escrita como $x=\frac2x$. Agora
+$|\varphi'(\sqrt2)|=1$, e com $x_0=1$ obtemos $2,1,2,1,\dots$: a sequência nunca se aproxima de
+$\sqrt2$.
+\end{exemplo}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=8cm,height=7cm,axis lines=middle,xmin=0.9,xmax=1.6,ymin=0.9,ymax=1.6,
+  grid=both,grid style={gray!20},xlabel={$x$},ylabel={$y$},
+  legend style={at={(0.02,0.98)},anchor=north west,font=\small}]
+\addplot[domain=0.9:1.6,thick,gray]{x};
+\addplot[domain=0.9:1.6,very thick,azul,samples=60]{(x+2)/(x+1)};
+\legend{$y=x$,$y=\varphi(x)$}
+\addplot[thick,vermelho,-{Stealth[length=2mm]}] coordinates {(1,0.9)(1,1.5)(1.5,1.5)(1.5,1.4)(1.4,1.4)(1.4,1.416667)(1.416667,1.416667)};
+\addplot[only marks,mark=*,mark size=1.5pt] coordinates {(1,0.9)(1.5,0.9)(1.4,0.9)};
+\end{axis}
+\end{tikzpicture}
+\caption{Diagrama em teia para $\varphi(x)=\frac{x+2}{x+1}$ a partir de $x_0=1$:
+os iterados alternam em torno de $\sqrt2$.}
+\label{fig:teia}
+\end{figure}
+
+\begin{atividade}{ponto fixo com $\varphi(x)=\frac{2(1+x)}{x+2}$}{\arqFixo}
+Aqui $f(x)=x^2-2$ e $\varphi(x)=\frac{2(1+x)}{x+2}$ (verifique que $x=\varphi(x)\iff x^2=2$). O
+botão INICIAR usa $[a,b]=[1;3]$ e $x_0=b-0{,}3=2{,}7$, e o gráfico mostra a escada (vetores),
+$\varphi$ e $|\varphi'|$. O texto indica ``Continue'' ou ``Pare'' conforme os critérios
+$|x_{k+1}-x_k|>10^{-5}$ e $|f(x_{k+1})|>10^{-4}$.
+\begin{enumerate}[nosep]
+  \item Confira $x_1\approx1{,}574468$, $x_2\approx1{,}440476$, $x_3\approx1{,}418685$.
+  \item Calcule $\varphi'(x)=\frac{2}{(x+2)^2}$. Por que a convergência é monótona (escada) e não
+        alternada? Quanto vale $|\varphi'(\sqrt2)|$?
+  \item Use os botões ``Apaga/Mostrar o Graf $f(x)$ e $\varphi'(x)$'' e verifique que
+        $|\varphi'(x)|<1$ em todo o intervalo $[1,3]$.
+  \item O botão JAVASCRIPT resolve outro exemplo: $x\ln x-1=0$ com $\varphi(x)=e^{1/x}$ e $x_0=1{,}3$.
+        Mostre que $\varphi'(\bar x)=-1/\bar x\approx-0{,}57$ e explique por que essa convergência é
+        alternada e bem mais lenta.
+\end{enumerate}
+\end{atividade}
+
+\begin{atividade}{ponto fixo que converge e ponto fixo que diverge}{\arqFixoC}
+Os dois aplicativos tratam $f(x)=x^2-x-2=(x-2)(x+1)$, com $x_0=2{,}7$, mas com funções de
+iteração diferentes:
+\begin{itemize}[nosep]
+  \item \ggbabrir{\arqFixoC}{versão que converge}: $\varphi(x)=x-\dfrac{x^2-x-2}{2x-1}$;
+  \item \ggbabrir{\arqFixoD}{versão que diverge}: $\varphi(x)=x^2-2$.
+\end{itemize}
+\begin{enumerate}[nosep]
+  \item Na versão que converge, confira $x_1\approx2{,}111364$, $x_2\approx2{,}003848$,
+        $x_3\approx2{,}000005$. Que método é esse? (Compare $\varphi$ com a fórmula de Newton.)
+  \item Na versão que diverge, confira $x_1=5{,}29$ e $x_2\approx25{,}98$. Calcule $\varphi'(2)=4$
+        e explique a divergência pelo teorema.
+  \item Nas duas versões, ligue o gráfico de $|\varphi'|$ e compare-o com a reta $y=1$ perto de $x=2$.
+\end{enumerate}
+\small\textbf{Arquivo da versão que diverge:}\\ \ggbabrir{\arqFixoD}{\texttt{ggb/\arqtxt{\arqFixoD}}}
+\end{atividade}
+
+% ==================================================================
+\section{Método de Newton-Raphson}
+
+Aproximamos $f$ pela reta tangente em $x_k$ e tomamos o ponto em que ela corta o eixo $x$:
+\[
+x_{k+1}=x_k-\frac{f(x_k)}{f'(x_k)},\qquad f'(x_k)\neq0.
+\]
+É o método do ponto fixo com $\varphi(x)=x-\frac{f(x)}{f'(x)}$. Como $\varphi'(\bar x)=0$ quando
+$f'(\bar x)\neq0$, a convergência perto de uma raiz simples é \emph{quadrática}: grosso modo, o
+número de algarismos corretos dobra a cada iteração.
+
+\begin{exemplo}[{: três iterações para $f(x)=x^2-2$ com $x_0=2$}]
+$f'(x)=2x$, e então $x_{k+1}=x_k-\frac{x_k^2-2}{2x_k}$.
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$k$ & $x_k$ & $f(x_k)$ & $f'(x_k)$ & $x_{k+1}$ & $f(x_{k+1})$\\
+\midrule
+0 & 2 & 2 & 4 & 1{,}5 & 0{,}25\\
+1 & 1{,}5 & 0{,}25 & 3 & 1{,}416667 & 0{,}006944\\
+2 & 1{,}416667 & 0{,}006944 & 2{,}833333 & 1{,}414216 & $6\times10^{-6}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Em três iterações já temos $\sqrt2$ com 5 casas corretas.
+\end{exemplo}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}
+\begin{axis}[width=10cm,height=6cm,axis lines=middle,xmin=1.2,xmax=2.15,ymin=-0.6,ymax=2.3,
+  grid=both,grid style={gray!20},xlabel={$x$},ylabel={$y$},xtick={1.416667,1.5,2},
+  xticklabels={$x_2$,$x_1$,$x_0$}]
+\addplot[domain=1.2:2.1,samples=80,very thick,azul]{x^2-2};
+\addplot[domain=1.45:2.1,thick,vermelho]{2+4*(x-2)};
+\addplot[domain=1.38:1.75,thick,laranja]{0.25+3*(x-1.5)};
+\addplot[dashed] coordinates {(2,0)(2,2)};
+\addplot[dashed] coordinates {(1.5,0)(1.5,0.25)};
+\addplot[only marks,mark=*] coordinates {(2,2)(1.5,0.25)(1.5,0)(1.416667,0)};
+\end{axis}
+\end{tikzpicture}
+\caption{Newton para $f(x)=x^2-2$: cada nova aproximação é o zero da reta tangente.}
+\end{figure}
+
+\paragraph{Cuidados.} Newton exige $f'$ e um bom chute inicial. Se $f'(x_k)\approx0$, o passo
+$f(x_k)/f'(x_k)$ fica enorme e a sequência pode ``saltar'' para longe, convergir para outra raiz
+ou nem convergir.
+
+\begin{atividade}{Newton-Raphson}{\arqNewton}
+A função é $f(x)=x^5-x^3+x^2-3$, e o aplicativo calcula $f'$ e desenha a reta tangente $h$ em
+cada passo. O botão INICIAR usa $x_0=1$; o chute também pode ser digitado na caixa $x_0$.
+\begin{enumerate}[nosep]
+  \item Confira $x_1=1{,}5$, $x_2\approx1{,}339130$, $x_3\approx1{,}286935$, $x_4\approx1{,}282090$,
+        $x_5\approx1{,}282051$. Quantas casas corretas cada iteração acrescenta?
+  \item Note que $x_1=1{,}5$ passou do outro lado da raiz. Por que, depois disso, todas as
+        aproximações se aproximam pela direita? (Observe a concavidade de $f$.)
+  \item Experimente $x_0=0$: a tangente é horizontal ($f'(0)=0$) e o método não pode ser aplicado.
+        Com $x_0=0{,}3$, $f'(0{,}3)\approx0{,}34$ é pequeno e $x_1\approx8{,}22$; quantas iterações são
+        necessárias para voltar perto da raiz?
+  \item O botão JAVASCRIPT resolve $f(x)=x^3-x^2-x=0$ com $x_0=0{,}9$ e $\varepsilon=10^{-3}$.
+        Como $f'(0{,}9)=-0{,}37$ é pequeno, $x_1\approx-1{,}751$, e o método converge para a raiz
+        $\frac{1-\sqrt5}{2}\approx-0{,}618$, e não para a raiz mais próxima,
+        $\frac{1+\sqrt5}{2}\approx1{,}618$. Explique o salto com a tangente.
+\end{enumerate}
+\end{atividade}
+
+% ==================================================================
+\section{Método da secante}
+
+Para evitar o cálculo de $f'$, substituímos a tangente pela secante que passa pelos dois últimos
+pontos:
+\[
+x_{k+1}=x_k-\frac{f(x_k)\,(x_k-x_{k-1})}{f(x_k)-f(x_{k-1})}.
+\]
+São necessários dois valores iniciais $x_0,x_1$. A fórmula lembra a da posição falsa, mas aqui
+\emph{não} se mantém um intervalo com troca de sinal: usam-se sempre os dois últimos pontos. A
+convergência é superlinear (ordem $\approx1{,}618$), mais rápida que a da posição falsa e um pouco
+mais lenta que a de Newton, sem precisar de derivada.
+
+\begin{exemplo}[{: três iterações para $f(x)=x^2-2$ com $x_0=1$, $x_1=2$}]
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+iteração & $x_{k-1}$ & $x_k$ & $f(x_{k-1})$ & $f(x_k)$ & $x_{k+1}$\\
+\midrule
+1 & 1 & 2 & $-1$ & 2 & $x_2=4/3\approx1{,}333333$\\
+2 & 2 & 1{,}333333 & 2 & $-0{,}222222$ & $x_3=1{,}4$\\
+3 & 1{,}333333 & 1{,}4 & $-0{,}222222$ & $-0{,}04$ & $x_4\approx1{,}414634$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Na terceira iteração, $f(x_3)$ e $f(x_4)$ têm o mesmo sinal, e mesmo assim o método continua:
+não há intervalo a manter.
+\end{exemplo}
+
+\begin{atividade}{secante}{\arqSec}
+A função é $f(x)=x^2-2$, com $x_0=a=0{,}5$ e $x_1=b=2$ no botão INICIAR. A cada clique em Xk,
+o aplicativo traça a secante e substitui $(a,b)$ por $(b,x_{\text{novo}})$.
+\begin{enumerate}[nosep]
+  \item Confira $x_2=1{,}2$, $x_3=1{,}375$, $x_4\approx1{,}417476$, $x_5\approx1{,}414168$,
+        $x_6\approx1{,}414214$.
+  \item Em $x_2=1{,}2$ e $x_3=1{,}375$, os dois valores de $f$ são negativos. A posição falsa
+        aceitaria esse par? O que isso mostra sobre a diferença entre os dois métodos?
+  \item O botão JAVASCRIPT executa o mesmo exemplo com $\varepsilon=10^{-4}$. Compare o número de
+        iterações com o da posição falsa no mesmo intervalo (botão JAVASCRIPT do aplicativo de
+        posição falsa).
+\end{enumerate}
+\end{atividade}
+
+% ==================================================================
+\section{Comparação dos métodos}
+
+Para $f(x)=x^2-2$, com o critério $|x_k-x_{k-1}|<10^{-6}$ (ou $b_k-a_k<10^{-6}$ na bisseção):
+
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{3.3cm}c>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{3.4cm}}
+\toprule
+Método & Dados iniciais & Iterações & Ordem & Exige\\
+\midrule
+Bisseção & $[1,2]$ & 20 & linear (fator $\frac12$) & troca de sinal\\
+Posição falsa & $[1,2]$ & 9 & linear & troca de sinal\\
+Ponto fixo & $x_0=1$, $\varphi=\frac{x+2}{x+1}$ & 9 & linear (fator $|\varphi'(\bar x)|$) & $|\varphi'|<1$ perto da raiz\\
+Newton & $x_0=2$ & 5 & quadrática & $f'$ e bom chute\\
+Secante & $x_0=1$, $x_1=2$ & 6 & $\approx1{,}618$ & dois chutes\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}[nosep]
+  \item \textbf{Bisseção}: sempre converge (com troca de sinal) e o número de iterações é
+        previsível, mas é lenta. Boa para obter um bom chute inicial.
+  \item \textbf{Posição falsa}: em geral mais rápida que a bisseção, mas pode ficar lenta quando
+        uma extremidade fica fixa (como no aplicativo com $(x-1)(x-2)^2$).
+  \item \textbf{Ponto fixo}: simples, mas a convergência depende da escolha de $\varphi$.
+  \item \textbf{Newton}: o mais rápido perto de raízes simples; exige a derivada e pode falhar com
+        um chute ruim.
+  \item \textbf{Secante}: quase tão rápida quanto Newton, sem derivada; também pode falhar longe da
+        raiz.
+\end{itemize}
+Na prática, é comum combinar: alguns passos de bisseção para chegar perto da raiz e depois
+Newton ou secante para refinar.
+
+
+
+% ==================================================================
+\section{Exercícios}
+
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=*]
+\item Isole as raízes de $f(x)=x^3-9x+3$ por uma tabela de sinais e justifique que há exatamente
+  uma raiz em cada intervalo encontrado.
+
+\item Para $f(x)=e^{-x}-x$ em $[0,1]$:
+  \begin{enumerate}[label=(\alph*),nosep]
+  \item faça três iterações da bisseção, justificando a escolha de cada intervalo;
+  \item quantas iterações garantem $b_k-a_k<10^{-4}$?
+  \item faça três iterações da posição falsa e compare.
+  \end{enumerate}
+
+\item Aplique o método de Newton a $f(x)=\cos x-x$ com $x_0=1$ até que
+  $|x_{k+1}-x_k|<10^{-6}$.
+
+\item Aplique o método da secante a $f(x)=e^{-x}-x$ com $x_0=0$ e $x_1=1$ (quatro iterações).
+
+\item A equação $x^3-x-1=0$ tem uma raiz em $[1,2]$. Considere
+  $\varphi_1(x)=\sqrt[3]{x+1}$ e $\varphi_2(x)=x^3-1$.
+  \begin{enumerate}[label=(\alph*),nosep]
+  \item mostre que as duas são funções de iteração para essa equação;
+  \item calcule $|\varphi_1'|$ e $|\varphi_2'|$ perto da raiz e decida qual converge;
+  \item faça cinco iterações com a função adequada, a partir de $x_0=1$.
+  \end{enumerate}
+
+\item Escreva, em Python, um laço \texttt{while} para o método de Newton aplicado a
+  $f(x)=x^2-2$, que pare quando $|x_{k+1}-x_k|<10^{-8}$ ou após 50 iterações. Desenhe o fluxograma
+  correspondente.
+
+\item \textbf{(GeoGebra)} No aplicativo de bisseção (versão 1), troque o critério de parada:
+  use $tol_1=0{,}1$ e $tol_2=10^{-6}$. Em que iteração o método para? Qual dos dois critérios foi
+  decisivo? Explique a diferença entre parar quando \emph{os dois} critérios são satisfeitos e quando
+  \emph{um} deles é satisfeito.
+
+\item \textbf{(GeoGebra)} Usando os aplicativos de ponto fixo, proponha uma terceira função de
+  iteração para $x^2-x-2=0$, por exemplo $\varphi(x)=\sqrt{x+2}$, e preveja, calculando
+  $\varphi'(2)$, se ela converge e se a convergência é monótona ou alternada.
+\end{enumerate}
+
+\subsection*{Respostas}
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=*,nosep]
+\item Trocas de sinal em $[-4,-3]$, $[0,1]$ e $[2,3]$; como $f$ tem grau 3, cada intervalo tem
+  exatamente uma raiz (também se verifica pelo sinal de $f'(x)=3x^2-9$ em cada um).
+\item (a) $x_1=0{,}5$ ($f>0$, novo intervalo $[0{,}5;1]$); $x_2=0{,}75$ ($f<0$, $[0{,}5;0{,}75]$);
+  $x_3=0{,}625$ ($f<0$, $[0{,}5;0{,}625]$). (b) $k>\log_2 10^4\approx13{,}3$: 14 iterações.
+  (c) $x_1\approx0{,}612700$, $x_2\approx0{,}572181$, $x_3\approx0{,}567703$ (com $a=0$ fixo);
+  a raiz é $\bar x\approx0{,}567143$.
+\item $x_1\approx0{,}750364$, $x_2\approx0{,}739113$, $x_3\approx0{,}739085133$,
+  $x_4\approx0{,}739085133$.
+\item $x_2\approx0{,}612700$, $x_3\approx0{,}563838$, $x_4\approx0{,}567170$, $x_5\approx0{,}567143$.
+\item (b) Na raiz $\bar x\approx1{,}3247$: $|\varphi_1'(\bar x)|\approx0{,}19<1$ (converge) e
+  $|\varphi_2'(\bar x)|=3\bar x^2\approx5{,}3>1$ (diverge). (c) $1{,}259921$; $1{,}312294$;
+  $1{,}322354$; $1{,}324269$; $1{,}324633$.
+\item Uma solução:
+\begin{lstlisting}[language=Python]
+x, k = 2.0, 0
+while k < 50:
+    x_novo = x - (x**2 - 2) / (2*x)
+    k = k + 1
+    if abs(x_novo - x) < 1e-8:
+        break
+    x = x_novo
+print(k, x_novo)
+\end{lstlisting}
+\item Para em $k=15$ ($x_k\approx1{,}7632233$, $|f(x_k)|\approx7\times10^{-7}$). O critério
+  do intervalo ($|b-a|\le0{,}1$) é atingido já em $k=1$; o método só para quando também
+  $|f(x_k)|\le10^{-6}$, portanto é o segundo critério que decide. Parar com \emph{um} critério
+  economiza iterações, mas pode parar cedo demais.
+\item $\varphi'(x)=\frac{1}{2\sqrt{x+2}}$, $\varphi'(2)=\frac14$: converge, de forma monótona
+  (pois $\varphi'>0$).
+\end{enumerate}

@@ -1,0 +1,362 @@
+{
+ "numero": 4,
+ "id": "interpolacao",
+ "titulo": "Interpolação polinomial",
+ "blocos": [
+  {
+   "tipo": "caixa",
+   "estilo": "como_usar",
+   "titulo": "Como usar os aplicativos deste capítulo",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Ao longo do capítulo, os quadros laranja *Atividade no GeoGebra* trazem o aplicativo, que abre aqui mesmo na página (botão **Abrir o aplicativo**):\n\n-   **Interpolação via sistema linear e eliminação de Gauss**;\n\n-   **Interpolação de Lagrange**;\n\n-   **Interpolação de Newton (diferenças divididas)**.\n\nOs três aplicativos começam com os mesmos quatro pontos $A(-4,2)$, $B(-2,-2)$, $C(4,3)$ e $D(8,0)$, que são os pontos do exemplo desenvolvido no texto. Ao arrastar qualquer ponto, todas as contas são refeitas. Nos aplicativos, cada janela da direita tem barras de rolagem (vertical e horizontal) para percorrer as contas."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 4.1 O problema da interpolação\n\nEm muitas situações conhecemos uma função apenas em alguns pontos: uma tabela de temperaturas medidas de hora em hora, valores tabelados de uma função especial, resultados de um experimento ou de uma simulação cara. Interpolar é construir uma função simples que *passe exatamente* pelos pontos conhecidos e usá-la para estimar valores intermediários, derivar, integrar ou simplesmente desenhar a curva."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "definicao",
+   "titulo": "Definição 4.1",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Dados $n$ pontos $(x_1,y_1),\\,(x_2,y_2),\\,\\dots,\\,(x_n,y_n)$ com abscissas $x_1,\\dots,x_n$ *distintas* (os *nós*), um *polinômio interpolador* desses pontos é um polinômio $p$ de grau menor ou igual a $n-1$ tal que \n\n$$\np(x_i)=y_i,\\qquad i=1,2,\\dots,n.\n$$\n\n Quando $y_i=f(x_i)$ para alguma função $f$, dizemos que $p$ *interpola $f$ nos nós* $x_1,\\dots,x_n$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Usamos polinômios porque são fáceis de avaliar (só somas e produtos), de derivar e de integrar, e porque, como veremos, o problema sempre tem uma única solução. Neste capítulo estudamos três maneiras de obter esse mesmo polinômio:\n\n1.  resolvendo um **sistema linear** (matriz de Vandermonde), por eliminação de Gauss;\n\n2.  pela **forma de Lagrange**;\n\n3.  pela **forma de Newton**, com diferenças divididas."
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap4_fig01.png",
+   "titulo": "",
+   "legenda": "**Figura 4.1.** O polinômio de grau 3 que passa pelos pontos $A$, $B$, $C$ e $D$ do exemplo do capítulo."
+  },
+  {
+   "tipo": "md",
+   "texto": "## 4.2 Existência e unicidade\n\nEscrevendo $p(x)=a_0+a_1x+\\dots+a_{n-1}x^{n-1}$, as condições $p(x_i)=y_i$ formam um sistema linear de $n$ equações nas $n$ incógnitas $a_0,\\dots,a_{n-1}$: \n\n$$\n\\begin{cases}\na_0+a_1x_1+a_2x_1^2+\\dots+a_{n-1}x_1^{\\,n-1}=y_1\\\\\na_0+a_1x_2+a_2x_2^2+\\dots+a_{n-1}x_2^{\\,n-1}=y_2\\\\\n\\qquad\\vdots\\\\\na_0+a_1x_n+a_2x_n^2+\\dots+a_{n-1}x_n^{\\,n-1}=y_n\n\\end{cases}\n$$\n\n ou, na forma matricial, \n\n$$\n\\underbrace{\\begin{pmatrix}\n1 & x_1 & x_1^2 & \\cdots & x_1^{\\,n-1}\\\\\n1 & x_2 & x_2^2 & \\cdots & x_2^{\\,n-1}\\\\\n\\vdots & \\vdots & \\vdots & & \\vdots\\\\\n1 & x_n & x_n^2 & \\cdots & x_n^{\\,n-1}\n\\end{pmatrix}}_{V}\n\\begin{pmatrix}a_0\\\\ a_1\\\\ \\vdots\\\\ a_{n-1}\\end{pmatrix}\n=\n\\begin{pmatrix}y_1\\\\ y_2\\\\ \\vdots\\\\ y_n\\end{pmatrix}.\n$$\n\n A matriz $V$ é a *matriz de Vandermonde* dos nós."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 4.2 (Existência e unicidade)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se os nós $x_1,\\dots,x_n$ são distintos, existe um único polinômio $p$ de grau menor ou igual a $n-1$ tal que $p(x_i)=y_i$ para $i=1,\\dots,n$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "*Unicidade.* Se $p$ e $q$ são dois polinômios interpoladores, então $r=p-q$ tem grau no máximo $n-1$ e se anula nos $n$ pontos distintos $x_1,\\dots,x_n$. Um polinômio não nulo de grau no máximo $n-1$ tem no máximo $n-1$ raízes; logo $r\\equiv 0$ e $p=q$.\n\n*Existência.* A unicidade diz que o sistema homogêneo $V\\mathbf a=\\mathbf 0$ só tem a solução nula (ela corresponde ao polinômio que interpola os valores $y_i=0$). Então $V$ é invertível e $V\\mathbf a=\\mathbf y$ tem solução para qualquer $\\mathbf y$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Pode-se mostrar que $\\det V=\\displaystyle\\prod_{1\\le i<j\\le n}(x_j-x_i)$, que é diferente de zero exatamente quando os nós são distintos (Exercício 6). Se dois nós coincidem e os valores $y$ são diferentes, nenhuma função $y=p(x)$ passa pelos dois pontos. Nos três aplicativos, colocar dois pontos na mesma vertical faz aparecer um aviso."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Como o polinômio interpolador é único, os três métodos deste capítulo produzem *o mesmo polinômio*, apenas escrito de formas diferentes e calculado com custos diferentes.\n\n## 4.3 Método 1: sistema linear e eliminação de Gauss\n\nA forma mais direta é montar o sistema de Vandermonde e resolvê-lo por eliminação de Gauss seguida de retrossubstituição, como em qualquer sistema linear."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: os pontos $A$, $B$, $C$, $D$ pelo sistema linear",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Vamos interpolar $A(-4,2)$, $B(-2,-2)$, $C(4,3)$, $D(8,0)$ por $p(x)=a_0+a_1x+a_2x^2+a_3x^3$. Cada linha da matriz aumentada é $\\left(\\begin{array}{cccc|c}1 & x_i & x_i^2 & x_i^3 & y_i\\end{array}\\right)$: \n\n$$\nB=\\left(\\begin{array}{rrrr|r}\n1 & -4 & 16 & -64 & 2\\\\\n1 & -2 & 4 & -8 & -2\\\\\n1 & 4 & 16 & 64 & 3\\\\\n1 & 8 & 64 & 512 & 0\n\\end{array}\\right).\n$$\n\n **Etapa 1** (pivô $a_{11}=1$): $m_{21}=m_{31}=m_{41}=1$, e $L_i\\leftarrow L_i-m_{i1}L_1$ para $i=2,3,4$: \n\n$$\nB_1=\\left(\\begin{array}{rrrr|r}\n1 & -4 & 16 & -64 & 2\\\\\n0 & 2 & -12 & 56 & -4\\\\\n0 & 8 & 0 & 128 & 1\\\\\n0 & 12 & 48 & 576 & -2\n\\end{array}\\right).\n$$\n\n **Etapa 2** (pivô $2$): $m_{32}=\\frac{8}{2}=4$, $m_{42}=\\frac{12}{2}=6$: \n\n$$\nB_2=\\left(\\begin{array}{rrrr|r}\n1 & -4 & 16 & -64 & 2\\\\\n0 & 2 & -12 & 56 & -4\\\\\n0 & 0 & 48 & -96 & 17\\\\\n0 & 0 & 120 & 240 & 22\n\\end{array}\\right).\n$$\n\n **Etapa 3** (pivô $48$): $m_{43}=\\frac{120}{48}=\\frac52$: \n\n$$\nB_3=\\left(\\begin{array}{rrrr|r}\n1 & -4 & 16 & -64 & 2\\\\\n0 & 2 & -12 & 56 & -4\\\\\n0 & 0 & 48 & -96 & 17\\\\\n0 & 0 & 0 & 480 & -\\frac{41}{2}\n\\end{array}\\right).\n$$\n\n **Retrossubstituição:** \n\n$$\n\\begin{aligned}\na_3&=\\frac{-41/2}{480}=-\\frac{41}{960}, &\na_2&=\\frac{17+96a_3}{48}=\\frac{43}{160},\\\\\na_1&=\\frac{-4+12a_2-56a_3}{2}=\\frac{97}{120}, &\na_0&=2+4a_1-16a_2+64a_3=-\\frac95 .\n\\end{aligned}\n$$\n\n Portanto \n\n$$\n\\boxed{\\,p(x)=-\\frac95+\\frac{97}{120}\\,x+\\frac{43}{160}\\,x^2-\\frac{41}{960}\\,x^3\\,}\n$$\n\n (Figura 4.1). Confira, por exemplo, que $p(4)=3$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Na eliminação da matriz de Vandermonde, a primeira coluna é toda de 1, por isso $m_{21}=m_{31}=\\dots=1$ e o primeiro pivô nunca é zero. Mais ainda, o $k$-ésimo pivô é $\\prod_{j<k}(x_k-x_j)$ (no exemplo: $1$, $x_2-x_1=2$, $(x_3-x_1)(x_3-x_2)=48$ e $(x_4-x_1)(x_4-x_2)(x_4-x_3)=480$). Assim, com nós distintos, a eliminação nunca precisa de troca de linhas."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: eliminação de Gauss automática",
+   "arquivo": "EliminacaoGauss_Interpolacao_4pontos_automatico.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Abra o aplicativo. À esquerda ficam os pontos $A$, $B$, $C$, $D$ e a cúbica; à direita, a matriz aumentada, os multiplicadores de cada etapa (com a conta $m_{ik}=\\text{elemento}/\\text{pivô}$), as matrizes $B_1$, $B_2$, $B_3$ e a retrossubstituição.\n\n1.  Confira, no aplicativo, todos os números do exemplo acima.\n\n2.  Arraste os pontos. Os multiplicadores $m_{21}$, $m_{31}$ e $m_{41}$ mudam? Explique usando a observação anterior.\n\n3.  Verifique, para outras posições, que o pivô da etapa 2 é $x_B-x_A$ e o da etapa 3 é $(x_C-x_A)(x_C-x_B)$.\n\n4.  Alinhe três dos pontos numa reta (por exemplo, todos com $y=0$). O que acontece com $a_3$? E se os quatro pontos estiverem alinhados?\n\n5.  Coloque $B$ na mesma vertical de $A$. Por que as contas desaparecem?"
+    }
+   ],
+   "aplicativos": [
+    "EliminacaoGauss_Interpolacao_4pontos_automatico.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "**Vantagens e limitações.** O método é conceitualmente simples e fornece diretamente os coeficientes na base $1,x,x^2,\\dots$. Por outro lado, resolver o sistema custa da ordem de $\\tfrac23 n^3$ operações e a matriz de Vandermonde fica muito *mal condicionada* quando $n$ cresce (as colunas $x^k$ ficam quase paralelas), o que amplifica os erros de arredondamento. Os métodos seguintes evitam o sistema linear.\n\n## 4.4 Método 2: forma de Lagrange\n\nA ideia de Lagrange é escrever $p$ como combinação de polinômios que “ligam” um nó de cada vez."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "definicao",
+   "titulo": "Definição 4.3",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Os *polinômios de Lagrange* associados aos nós distintos $x_1,\\dots,x_n$ são \n\n$$\nL_i(x)=\\prod_{\\substack{j=1\\\\ j\\neq i}}^{n}\\frac{x-x_j}{x_i-x_j}\n=\\frac{(x-x_1)\\cdots(x-x_{i-1})(x-x_{i+1})\\cdots(x-x_n)}\n{(x_i-x_1)\\cdots(x_i-x_{i-1})(x_i-x_{i+1})\\cdots(x_i-x_n)},\n\\qquad i=1,\\dots,n.\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Cada $L_i$ tem grau $n-1$ e satisfaz \n\n$$\nL_i(x_j)=\\delta_{ij}=\\begin{cases}1,& j=i,\\\\ 0,& j\\neq i,\\end{cases}\n$$\n\n pois o numerador se anula em todos os nós diferentes de $x_i$ e, em $x_i$, numerador e denominador são iguais."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 4.4 (Forma de Lagrange)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O polinômio interpolador dos pontos $(x_i,y_i)$, $i=1,\\dots,n$, é \n\n$$\np(x)=\\sum_{i=1}^{n}y_i\\,L_i(x)=y_1L_1(x)+y_2L_2(x)+\\dots+y_nL_n(x).\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "$p$ tem grau no máximo $n-1$ e $p(x_j)=\\sum_i y_i\\,\\delta_{ij}=y_j$. Pelo Teorema 4.2, é o polinômio interpolador."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: os mesmos pontos pela forma de Lagrange",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Com $x_1=-4$, $x_2=-2$, $x_3=4$, $x_4=8$: \n\n$$\n\\begin{aligned}\n{\\color{#1f63b4}L_1(x)}&=\\frac{(x+2)(x-4)(x-8)}{(-4+2)(-4-4)(-4-8)}=\\frac{(x+2)(x-4)(x-8)}{-192}\n=-\\tfrac{1}{192}x^3+\\tfrac{5}{96}x^2-\\tfrac{1}{24}x-\\tfrac13,\\\\[2pt]\n{\\color{#1b8a3b}L_2(x)}&=\\frac{(x+4)(x-4)(x-8)}{(-2+4)(-2-4)(-2-8)}=\\frac{(x+4)(x-4)(x-8)}{120}\n=\\tfrac{1}{120}x^3-\\tfrac{1}{15}x^2-\\tfrac{2}{15}x+\\tfrac{16}{15},\\\\[2pt]\n{\\color{#e67e22}L_3(x)}&=\\frac{(x+4)(x+2)(x-8)}{(4+4)(4+2)(4-8)}=\\frac{(x+4)(x+2)(x-8)}{-192}\n=-\\tfrac{1}{192}x^3+\\tfrac{1}{96}x^2+\\tfrac{5}{24}x+\\tfrac13,\\\\[2pt]\n{\\color{#9467bd}L_4(x)}&=\\frac{(x+4)(x+2)(x-4)}{(8+4)(8+2)(8-4)}=\\frac{(x+4)(x+2)(x-4)}{480}\n=\\tfrac{1}{480}x^3+\\tfrac{1}{240}x^2-\\tfrac{1}{30}x-\\tfrac{1}{15}.\n\\end{aligned}\n$$\n\n Então \n\n$$\np(x)=2L_1(x)-2L_2(x)+3L_3(x)+0\\,L_4(x)\n=-\\frac95+\\frac{97}{120}x+\\frac{43}{160}x^2-\\frac{41}{960}x^3,\n$$\n\n exatamente o polinômio obtido pelo sistema linear. Repare que $L_4$ nem precisaria ser calculado, pois $y_4=0$."
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap4_fig02.png",
+   "titulo": "",
+   "legenda": "**Figura 4.2.** As bases de Lagrange do exemplo: cada $L_i$ vale 1 no seu nó (pontos cheios) e 0 nos demais nós (círculos)."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: forma de Lagrange automática",
+   "arquivo": "Interpolacao_Lagrange_4pontos_automatico.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo mostra, para cada base, a fórmula, a substituição dos nós, o denominador e a forma expandida, além do polinômio $p$. No gráfico, as bases aparecem tracejadas nas mesmas cores dos quadros.\n\n1.  Com a caixa “Mostrar as bases” marcada, confira que cada $L_i$ vale 1 em $x_i$ e 0 nos outros nós.\n\n2.  Mova o ponto $C$ *apenas na vertical*. Quais bases mudam? Qual parcela de $p$ muda? Por quê?\n\n3.  Agora mova $C$ na horizontal. Por que, desta vez, todas as bases mudam?\n\n4.  Coloque os quatro pontos com a mesma ordenada $y=c$. Qual é o polinômio $p$? Conclua que $L_1+L_2+L_3+L_4\\equiv 1$.\n\n5.  Compare a cúbica e os coeficientes com os do aplicativo de eliminação de Gauss."
+    }
+   ],
+   "aplicativos": [
+    "Interpolacao_Lagrange_4pontos_automatico.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "**Vantagens e limitações.** A forma de Lagrange dispensa a resolução de sistemas e é muito útil em teoria (dela saem fórmulas de derivação e integração numérica). Quando os nós são fixos e só os valores $y_i$ mudam, basta recombinar as mesmas bases. Por outro lado, se acrescentarmos um novo nó, *todas* as bases precisam ser refeitas.\n\n## 4.5 Método 3: forma de Newton e diferenças divididas\n\nA forma de Newton constrói o polinômio aos poucos, um nó de cada vez: \n\n$$\np(x)=c_1+c_2(x-x_1)+c_3(x-x_1)(x-x_2)+\\dots+c_n(x-x_1)(x-x_2)\\cdots(x-x_{n-1}).\n$$\n\n Impondo $p(x_1)=y_1$, $p(x_2)=y_2$, … sucessivamente, obtemos os coeficientes $c_k$ um a um: o sistema é triangular. Esses coeficientes são as *diferenças divididas*."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "definicao",
+   "titulo": "Definição 4.5",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "As *diferenças divididas* de $f$ nos nós $x_1,\\dots,x_n$ são definidas recursivamente por \n\n$$\n\\begin{aligned}\nf[x_i]&=f(x_i)=y_i,\\\\\nf[x_i,x_{i+1},\\dots,x_{i+k}]&=\\frac{f[x_{i+1},\\dots,x_{i+k}]-f[x_i,\\dots,x_{i+k-1}]}{x_{i+k}-x_i}.\n\\end{aligned}\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 4.6 (Forma de Newton)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O polinômio interpolador de $f$ nos nós distintos $x_1,\\dots,x_n$ é \n\n$$\np(x)=f[x_1]+f[x_1,x_2](x-x_1)+f[x_1,x_2,x_3](x-x_1)(x-x_2)+\\dots\n+f[x_1,\\dots,x_n]\\prod_{j=1}^{n-1}(x-x_j).\n$$\n\n Além disso, se $p_{k}$ denota o polinômio que interpola os $k+1$ primeiros nós, vale \n\n$$\np_k(x)=p_{k-1}(x)+f[x_1,\\dots,x_{k+1}]\\,(x-x_1)(x-x_2)\\cdots(x-x_k).\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "A segunda fórmula é a grande vantagem do método: ao acrescentar um ponto, aproveitamos tudo o que já foi calculado e somamos apenas *um termo*. As diferenças divididas são organizadas numa tabela triangular; os coeficientes da forma de Newton ficam na primeira linha (ou na diagonal superior, conforme a disposição)."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: os mesmos pontos pela forma de Newton",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Para $A(-4,2)$, $B(-2,-2)$, $C(4,3)$, $D(8,0)$:\n\n**Ordem 1:** \n\n$$\nf[x_1,x_2]=\\frac{-2-2}{-2-(-4)}=-2,\\quad\nf[x_2,x_3]=\\frac{3-(-2)}{4-(-2)}=\\frac56,\\quad\nf[x_3,x_4]=\\frac{0-3}{8-4}=-\\frac34.\n$$\n\n **Ordem 2:** \n\n$$\nf[x_1,x_2,x_3]=\\frac{\\frac56-(-2)}{4-(-4)}=\\frac{17}{48},\\qquad\nf[x_2,x_3,x_4]=\\frac{-\\frac34-\\frac56}{8-(-2)}=-\\frac{19}{120}.\n$$\n\n **Ordem 3:** \n\n$$\nf[x_1,x_2,x_3,x_4]=\\frac{-\\frac{19}{120}-\\frac{17}{48}}{8-(-4)}=-\\frac{41}{960}.\n$$\n\n| $x_i$ |          $f[x_i]$          |           ordem 1           |                ordem 2                 |                 ordem 3                  |\n|:-----:|:--------------------------:|:---------------------------:|:--------------------------------------:|:----------------------------------------:|\n| $-4$  | $\\color{#c81e1e}\\boxed{2}$ | $\\color{#c81e1e}\\boxed{-2}$ | $\\color{#c81e1e}\\boxed{\\frac{17}{48}}$ | $\\color{#c81e1e}\\boxed{-\\frac{41}{960}}$ |\n| $-2$  |            $-2$            |          $\\frac56$          |           $-\\frac{19}{120}$            |                                          |\n|  $4$  |            $3$             |         $-\\frac34$          |                                        |                                          |\n|  $8$  |            $0$             |                             |                                        |                                          |\n\nLogo \n\n$$\np(x)=2-2(x+4)+\\frac{17}{48}(x+4)(x+2)-\\frac{41}{960}(x+4)(x+2)(x-4),\n$$\n\n que, expandido, é novamente $p(x)=-\\frac95+\\frac{97}{120}x+\\frac{43}{160}x^2-\\frac{41}{960}x^3$. Repare que o coeficiente de $x^3$ é a diferença dividida de maior ordem."
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap4_fig03.png",
+   "titulo": "",
+   "legenda": "**Figura 4.3.** Construção incremental de Newton: $p_0$ passa por $A$; $p_1$ por $A,B$; $p_2$ por $A,B,C$; $p_3$ pelos quatro pontos."
+  },
+  {
+   "tipo": "md",
+   "texto": "**Avaliação eficiente (forma aninhada).** A forma de Newton pode ser avaliada como no algoritmo de Horner: \n\n$$\np(x)=c_1+(x-x_1)\\Bigl(c_2+(x-x_2)\\bigl(c_3+(x-x_3)\\,c_4\\bigr)\\Bigr),\n$$\n\n o que exige apenas $n-1$ multiplicações para cada valor de $x$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: diferenças divididas automáticas",
+   "arquivo": "Interpolacao_Newton_4pontos_automatico.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo mostra as diferenças de cada ordem com as contas, a tabela triangular (com os coeficientes destacados em vermelho) e o polinômio nas formas de Newton e expandida. No gráfico, a caixa de seleção mostra os polinômios parciais $p_0$, $p_1$ e $p_2$.\n\n1.  Confira a tabela do exemplo acima.\n\n2.  Arraste apenas o ponto $D$. Quais entradas da tabela mudam? Os polinômios $p_0$, $p_1$, $p_2$ mudam? Relacione com a fórmula $p_3=p_2+f[x_1,\\dots,x_4](x-x_1)(x-x_2)(x-x_3)$.\n\n3.  Arraste agora o ponto $A$. Por que, desta vez, toda a primeira linha da tabela muda?\n\n4.  Posicione $D$ sobre a parábola $p_2$. Quanto vale $f[x_1,x_2,x_3,x_4]$? Interprete.\n\n5.  Compare com os aplicativos de Gauss e de Lagrange e verifique que os três chegam ao mesmo polinômio."
+    }
+   ],
+   "aplicativos": [
+    "Interpolacao_Newton_4pontos_automatico.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 4.6 Comparação dos três métodos\n\n|                       | Sistema linear (Vandermonde)      | Lagrange                                      | Newton                                   |\n|:----------------------|:----------------------------------|:----------------------------------------------|:-----------------------------------------|\n| Base usada            | $1,x,\\dots,x^{n-1}$               | $L_1,\\dots,L_n$                               | $1,(x-x_1),(x-x_1)(x-x_2),\\dots$         |\n| Custo para obter $p$  | $\\approx\\frac23 n^3$ (eliminação) | nenhum cálculo prévio, além dos denominadores | $\\approx\\frac{n^2}{2}$ divisões (tabela) |\n| Avaliar $p(x)$        | $n-1$ mult. (Horner)              | $\\approx n^2$ operações                       | $n-1$ mult. (forma aninhada)             |\n| Acrescentar um nó     | refazer o sistema                 | refazer todas as bases                        | somar um termo                           |\n| Estabilidade numérica | ruim para $n$ grande              | boa                                           | boa                                      |\n\nEm resumo: o sistema linear é o caminho mais intuitivo e mostra a ligação com a Álgebra Linear; a forma de Lagrange é a mais elegante e a mais usada na teoria; a forma de Newton é, em geral, a mais conveniente no computador.\n\n## 4.7 O erro da interpolação\n\nQuando os dados vêm de uma função $f$, queremos saber quão perto $p(x)$ está de $f(x)$ fora dos nós."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 4.7 (Erro da interpolação)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Seja $f$ com derivadas contínuas até a ordem $n$ num intervalo $[a,b]$ que contém os nós distintos $x_1,\\dots,x_n$, e seja $p$ o polinômio que interpola $f$ nesses nós. Para cada $x\\in[a,b]$ existe $\\xi=\\xi(x)\\in(a,b)$ tal que \n\n$$\nf(x)-p(x)=\\frac{f^{(n)}(\\xi)}{n!}\\,(x-x_1)(x-x_2)\\cdots(x-x_n).\n$$\n\n Em particular, se $|f^{(n)}(t)|\\le M_n$ em $[a,b]$, \n\n$$\n|f(x)-p(x)|\\le\\frac{M_n}{n!}\\,\\bigl|(x-x_1)(x-x_2)\\cdots(x-x_n)\\bigr|.\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Ideia da demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Fixado $x$ diferente dos nós, considere $g(t)=f(t)-p(t)-K\\prod_{i}(t-x_i)$, com $K$ escolhido para que $g(x)=0$. Então $g$ tem $n+1$ zeros em $[a,b]$ (os nós e $x$). Aplicando o Teorema de Rolle repetidamente, $g^{(n)}$ tem um zero $\\xi$. Como $p^{(n)}\\equiv0$ e a derivada de ordem $n$ de $\\prod_i(t-x_i)$ é $n!$, obtemos $0=f^{(n)}(\\xi)-K\\,n!$, isto é, $K=f^{(n)}(\\xi)/n!$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: estimativa de erro",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Interpolando $f(x)=e^x$ nos nós $0$; $0{,}5$; $1$ e avaliando em $x=0{,}25$, obtemos $p(0{,}25)\\approx1{,}27176$, enquanto $e^{0{,}25}\\approx1{,}28403$. O erro real é $\\approx0{,}01227$. Pelo Teorema 4.7, com $n=3$ e $M_3=\\max_{[0,1]}e^x=e$, \n\n$$\n|f(0{,}25)-p(0{,}25)|\\le\\frac{e}{3!}\\,|0{,}25\\cdot(-0{,}25)\\cdot(-0{,}75)|\\approx0{,}02124,\n$$\n\n uma cota coerente com o erro observado."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "**Mais pontos nem sempre é melhor: o fenômeno de Runge.** O produto $\\prod(x-x_i)$ pode ficar grande perto das extremidades do intervalo quando os nós são igualmente espaçados. Para $f(x)=\\dfrac{1}{1+25x^2}$ em $[-1,1]$ com 11 nós igualmente espaçados, o polinômio interpolador de grau 10 oscila fortemente perto de $\\pm1$, com erro máximo próximo de $1{,}9$ (Figura 4.4). Nesses casos usam-se nós de Chebyshev (mais concentrados nas extremidades) ou interpolação por partes (*splines*), assuntos que aparecem mais adiante."
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap4_fig04.png",
+   "titulo": "",
+   "legenda": "**Figura 4.4.** Fenômeno de Runge: aumentar o número de nós igualmente espaçados pode piorar a aproximação perto das extremidades."
+  },
+  {
+   "tipo": "md",
+   "texto": "## 4.8 Exercícios\n\n1.  Encontre o polinômio que interpola $(0,1)$, $(1,3)$, $(2,7)$ pelos três métodos: sistema linear, Lagrange e Newton. Confira que os resultados coincidem.\n\n2.  Considere os pontos $(-1,4)$, $(0,1)$, $(1,0)$, $(2,1)$.\n\n    1.  Monte a tabela de diferenças divididas e escreva $p$ na forma de Newton.\n\n    2.  Qual é o grau de $p$? Por que ele é menor que 3?\n\n    3.  Acrescente o ponto $(3,4)$. Quantos termos novos aparecem na forma de Newton?\n\n3.  A temperatura de um forno foi medida em três instantes:\n\n    |    $t$ (min)    |  1   |  3   |  4   |\n    |:---------------:|:----:|:----:|:----:|\n    | $T$ ($^\\circ$C) | 21,2 | 24,8 | 25,6 |\n\n    Use interpolação quadrática para estimar a temperatura em $t=2$ min.\n\n4.  Interpole $f(x)=\\operatorname{sen}x$ nos nós $0$, $\\pi/4$ e $\\pi/2$. Estime $\\operatorname{sen}(\\pi/8)$, calcule o erro real e compare com a cota do Teorema 4.7.\n\n5.  Mostre que, para quaisquer nós distintos, $\\displaystyle\\sum_{i=1}^{n}L_i(x)=1$ para todo $x$. (Sugestão: qual polinômio interpola a função constante $f(x)=1$?)\n\n6.  Mostre que, para três nós, $\\det\\begin{pmatrix}1&x_1&x_1^2\\\\1&x_2&x_2^2\\\\1&x_3&x_3^2\\end{pmatrix}\n      =(x_2-x_1)(x_3-x_1)(x_3-x_2)$.\n\n7.  **(GeoGebra)** Em cada um dos três aplicativos, coloque os quatro pontos sobre a reta $y=2x+2$ (por exemplo, $(0,2)$, $(1,4)$, $(2,6)$, $(3,8)$). Descreva o que acontece com: (a) a última linha da matriz escalonada; (b) a combinação das bases de Lagrange; (c) as diferenças divididas de ordem 2 e 3.\n\n8.  **(GeoGebra)** No aplicativo de Newton, mova somente o ponto $D$ e anote quais números mudam na tabela. Faça o mesmo no aplicativo de Lagrange. Qual dos dois métodos reaproveita mais contas quando um único dado muda?\n\n### Respostas\n1.  $p(x)=x^2+x+1$. Na forma de Newton: $p(x)=1+2x+x(x-1)$.\n\n2.  \\(a\\) $f[x_i]$: $4,1,0,1$; ordem 1: $-3,-1,1$; ordem 2: $1,1$; ordem 3: $0$. Logo $p(x)=4-3(x+1)+(x+1)x=x^2-2x+1=(x-1)^2$. (b) Grau 2, pois $f[x_1,\\dots,x_4]=0$: os quatro pontos estão sobre uma mesma parábola. (c) Um termo, com coeficiente $f[x_1,\\dots,x_5]=0$; o ponto $(3,4)$ também está sobre a parábola.\n\n3.  $T(t)=\\frac{92}{5}+\\frac{47}{15}t-\\frac13t^2$, e $T(2)=\\frac{70}{3}\\approx23{,}3\\,^\\circ$C.\n\n4.  $p(\\pi/8)\\approx0{,}40533$, $\\operatorname{sen}(\\pi/8)\\approx0{,}38268$, erro $\\approx0{,}02265$; cota $\\frac16\\,|\\tfrac{\\pi}{8}(\\tfrac{\\pi}{8}-\\tfrac{\\pi}{4})(\\tfrac{\\pi}{8}-\\tfrac{\\pi}{2})|\\approx0{,}03028$.\n\n5.  O polinômio que interpola $f\\equiv1$ é $p\\equiv1$; pela forma de Lagrange, $p=\\sum 1\\cdot L_i$.\n\n6.  Escalone (ou desenvolva o determinante) e fatore.\n\n7.  \\(a\\) na matriz escalonada, os termos independentes das linhas 3 e 4 ficam iguais a 0, logo $a_3=a_2=0$; (b) $p(x)=2x+2$; (c) todas nulas.\n\n8.  Em Newton mudam apenas as entradas que envolvem $x_4$ (a última “diagonal” da tabela, de $f[x_4]$ até $f[x_1,\\dots,x_4]$) e só o último termo do polinômio; $p_0,p_1,p_2$ não mudam. Em Lagrange, como $x_4$ aparece em todos os denominadores e numeradores, todas as bases mudam. Newton reaproveita mais contas."
+  }
+ ],
+ "secoes": [
+  [
+   "4.1",
+   "O problema da interpolação"
+  ],
+  [
+   "4.2",
+   "Existência e unicidade"
+  ],
+  [
+   "4.3",
+   "Método 1: sistema linear e eliminação de Gauss"
+  ],
+  [
+   "4.4",
+   "Método 2: forma de Lagrange"
+  ],
+  [
+   "4.5",
+   "Método 3: forma de Newton e diferenças divididas"
+  ],
+  [
+   "4.6",
+   "Comparação dos três métodos"
+  ],
+  [
+   "4.7",
+   "O erro da interpolação"
+  ],
+  [
+   "4.8",
+   "Exercícios"
+  ]
+ ]
+}

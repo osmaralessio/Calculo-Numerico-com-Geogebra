@@ -1,0 +1,608 @@
+% Capítulo gerado a partir de sistemas_lineares.tex (arquivos usados neste capítulo)
+\def\arqGauss{EliminacaoGauss_sistema4x5_compacto.ggb}
+\def\arqLUtres{FatoracaoLU_3x3.ggb}
+\def\arqLUquatro{FatoracaoLU_4x4.ggb}
+\def\arqJacobi{GaussJacobi_sistema3x3_rolagem.ggb}
+\def\arqSeidel{GaussSeidel_sistema3x3_rolagem.ggb}
+\def\pdfCusto{CustoComputacional_SistemasLineares.pdf}
+\def\pdfComp{ComparacaoMetodosDiretos.pdf}
+\chapter{Sistemas lineares: métodos diretos e iterativos}\label{cap:sistemas}
+
+\begin{tcolorbox}[colback=gray!4,colframe=gray!50,title={Como usar os aplicativos e os textos deste capítulo},fonttitle=\bfseries]
+Os quadros laranja \emph{Atividade no GeoGebra} trazem o link \textbf{[abrir o aplicativo]},
+que abre o arquivo correspondente no GeoGebra Classic:
+\begin{itemize}[nosep]
+  \item \ggbabrir{\arqGauss}{Eliminação de Gauss, sistema $4\times4$};
+  \item \ggbabrir{\arqLUtres}{Fatoração $PA=LU$, matriz $3\times3$} e
+        \ggbabrir{\arqLUquatro}{Fatoração $PA=LU$, matriz $4\times4$};
+  \item \ggbabrir{\arqJacobi}{Método de Gauss-Jacobi, sistema $3\times3$};
+  \item \ggbabrir{\arqSeidel}{Método de Gauss-Seidel, sistema $3\times3$}.
+\end{itemize}
+Os quadros verdes \emph{Leitura complementar} abrem dois textos de apoio sobre custo
+computacional:
+\pdfabrir{\pdfCusto}{Custo computacional na resolução de sistemas lineares} e
+\pdfabrir{\pdfComp}{Comparação computacional dos métodos diretos}.
+
+Para que os links funcionem, mantenha este PDF e as pastas \texttt{ggb} e \texttt{complementos}
+juntos, na mesma pasta, e abra o PDF num leitor que permita abrir arquivos externos (Adobe
+Acrobat Reader, Okular, SumatraPDF, Foxit). Os leitores de PDF dos navegadores costumam bloquear
+esses links; nesse caso, abra os arquivos diretamente das pastas.
+
+Em todos os aplicativos, o aluno digita os valores pedidos (multiplicadores ou componentes da
+iteração) e recebe a correção imediata (\textcolor{verde}{\ding{51}}/\textcolor{vermelho}{\ding{55}});
+cada etapa só é liberada quando a anterior está correta. Digite frações como \texttt{4/3}, sem arredondar.
+\end{tcolorbox}
+
+% ==================================================================
+\section{Introdução}
+
+Um \emph{sistema linear} de $n$ equações e $n$ incógnitas é
+\[
+\begin{cases}
+a_{11}x_1+a_{12}x_2+\dots+a_{1n}x_n=b_1\\
+a_{21}x_1+a_{22}x_2+\dots+a_{2n}x_n=b_2\\
+\qquad\vdots\\
+a_{n1}x_1+a_{n2}x_2+\dots+a_{nn}x_n=b_n
+\end{cases}
+\qquad\text{ou}\qquad A\x=\bb,
+\]
+com $A=(a_{ij})$ a \emph{matriz dos coeficientes}, $\x$ o vetor das incógnitas e $\bb$ o vetor
+dos termos independentes. A matriz $[A\,|\,\bb]$ é a \emph{matriz aumentada}.
+
+Sistemas lineares aparecem em quase todos os problemas de Cálculo Numérico: interpolação,
+ajuste de curvas, discretização de equações diferenciais, circuitos, estruturas, economia.
+Eles podem ser enormes (milhões de incógnitas), por isso importa não apenas \emph{resolver},
+mas resolver com poucas operações e com controle dos erros de arredondamento.
+
+\begin{definicao}
+Um sistema linear é
+\emph{possível e determinado} (SPD) se tem uma única solução,
+\emph{possível e indeterminado} (SPI) se tem infinitas soluções e
+\emph{impossível} (SI) se não tem solução. Para $A$ quadrada, o sistema é SPD se, e somente
+se, $\det A\neq0$.
+\end{definicao}
+
+Estudaremos duas famílias de métodos:
+\begin{itemize}[nosep]
+  \item \textbf{métodos diretos}, que, em aritmética exata, fornecem a solução exata após um
+  número finito de operações: eliminação de Gauss e fatoração $LU$;
+  \item \textbf{métodos iterativos}, que geram uma sequência $\x^{(0)},\x^{(1)},\x^{(2)},\dots$
+  que converge para a solução: Gauss-Jacobi e Gauss-Seidel.
+\end{itemize}
+
+% ==================================================================
+\section{Sistemas triangulares}
+
+Os métodos diretos reduzem o problema a sistemas triangulares, que são resolvidos facilmente.
+Se $U$ é triangular superior com $u_{ii}\neq0$, o sistema $U\x=\y$ é resolvido de baixo para
+cima (\emph{retrossubstituição}):
+\[
+x_n=\frac{y_n}{u_{nn}},\qquad
+x_i=\frac{1}{u_{ii}}\Bigl(y_i-\sum_{j=i+1}^{n}u_{ij}x_j\Bigr),\quad i=n-1,\dots,1.
+\]
+Se $L$ é triangular inferior, $L\y=\bb$ é resolvido de cima para baixo (\emph{substituição
+progressiva}):
+\[
+y_1=\frac{b_1}{l_{11}},\qquad
+y_i=\frac{1}{l_{ii}}\Bigl(b_i-\sum_{j=1}^{i-1}l_{ij}y_j\Bigr),\quad i=2,\dots,n.
+\]
+Cada uma custa cerca de $n^2$ operações, muito menos que a eliminação ($\approx\frac23n^3$).
+
+% ==================================================================
+\section{Eliminação de Gauss}
+
+A eliminação de Gauss transforma $[A\,|\,\bb]$ numa matriz triangular superior equivalente
+usando operações elementares sobre as linhas, que não alteram a solução:
+\begin{itemize}[nosep]
+  \item trocar duas linhas: $L_i\leftrightarrow L_j$;
+  \item substituir uma linha por ela menos um múltiplo de outra: $L_i\leftarrow L_i-m\,L_k$.
+\end{itemize}
+
+\paragraph{O algoritmo.} Na etapa $k$ ($k=1,\dots,n-1$), o elemento $a^{(k-1)}_{kk}$ é o
+\emph{pivô}. Se ele for nulo, troca-se a linha $k$ com uma linha abaixo que tenha elemento não
+nulo na coluna $k$. Depois, para cada linha $i>k$, calcula-se o \emph{multiplicador}
+\[
+m_{ik}=\frac{a^{(k-1)}_{ik}}{a^{(k-1)}_{kk}}
+\qquad\text{e faz-se}\qquad L_i\leftarrow L_i-m_{ik}L_k,
+\]
+o que zera a coluna $k$ abaixo do pivô. Ao final, resolve-se o sistema triangular por
+retrossubstituição.
+
+\begin{exemplo}[: eliminação com trocas de linhas (exemplo inicial do aplicativo)]
+Resolva
+\[
+[A\,|\,\bb]=\left(\begin{array}{rrrr|r}
+0 & 1 & 2 & 1 & 4\\
+1 & 1 & 1 & 0 & 2\\
+2 & 1 & 0 & 1 & 2\\
+1 & 0 & 1 & 1 & 4
+\end{array}\right).
+\]
+\textbf{Etapa 1.} O pivô $a_{11}=0$; trocamos $L_1\leftrightarrow L_2$. Agora o pivô é $1$ e
+$m_{21}=0$, $m_{31}=2$, $m_{41}=1$:
+\[
+B_1=\left(\begin{array}{rrrr|r}
+1 & 1 & 1 & 0 & 2\\
+0 & 1 & 2 & 1 & 4\\
+0 & -1 & -2 & 1 & -2\\
+0 & -1 & 0 & 1 & 2
+\end{array}\right).
+\]
+\textbf{Etapa 2.} Pivô $1$; $m_{32}=-1$, $m_{42}=-1$:
+\[
+B_2=\left(\begin{array}{rrrr|r}
+1 & 1 & 1 & 0 & 2\\
+0 & 1 & 2 & 1 & 4\\
+0 & 0 & 0 & 2 & 2\\
+0 & 0 & 2 & 2 & 6
+\end{array}\right).
+\]
+\textbf{Etapa 3.} O pivô $(3,3)$ é zero; trocamos $L_3\leftrightarrow L_4$, e então $m_{43}=0$:
+\[
+B_3=\left(\begin{array}{rrrr|r}
+1 & 1 & 1 & 0 & 2\\
+0 & 1 & 2 & 1 & 4\\
+0 & 0 & 2 & 2 & 6\\
+0 & 0 & 0 & 2 & 2
+\end{array}\right).
+\]
+\textbf{Retrossubstituição:} $x_4=1$, $x_3=\frac{6-2}{2}=2$, $x_2=4-2\cdot2-1=-1$,
+$x_1=2-(-1)-2=1$. Logo $\x=(1,-1,2,1)$, e o sistema é SPD.
+\end{exemplo}
+
+\paragraph{Classificação pela forma escalonada.} Se, ao final, aparece uma linha
+$(0\ \cdots\ 0\,|\,c)$ com $c\neq0$, o sistema é \emph{impossível}; se aparece
+$(0\ \cdots\ 0\,|\,0)$ e não há contradição, sobram variáveis livres e o sistema é
+\emph{possível e indeterminado}.
+
+\begin{atividade}{eliminação de Gauss $4\times4$}{\arqGauss}
+O aplicativo começa com o sistema do exemplo acima. Em cada etapa, informe a linha do pivô
+(trocando linhas quando o pivô for zero) e os multiplicadores; as matrizes $B_1$, $B_2$, $B_3$
+mostram o pivô em azul e, em vermelho, os elementos que ainda deveriam ser zero.
+\begin{enumerate}[nosep]
+  \item Refaça o exemplo no aplicativo e confira a solução com ``Mostrar solução''.
+  \item Clique em \emph{Exemplo: troca + SPI}. Em que etapa é necessária a troca? Qual linha
+        da matriz final mostra que o sistema é indeterminado? Qual variável fica livre?
+  \item Clique em \emph{Exemplo: sistema impossível (SI)}. Qual linha da matriz final contém a
+        contradição?
+  \item Gere sistemas com \emph{Novo sistema aleatório (SPD)} até conseguir resolver três deles
+        sem erros.
+\end{enumerate}
+\end{atividade}
+
+\paragraph{Pivoteamento parcial.} Na aritmética do computador, um pivô muito pequeno gera
+multiplicadores enormes, que amplificam os erros de arredondamento. Por isso, na prática,
+escolhe-se como pivô o elemento de \emph{maior módulo} da coluna (a partir da linha $k$) e
+trocam-se as linhas. Assim $|m_{ik}|\le1$.
+
+\begin{exemplo}[: por que pivotear]
+Para $A=\begin{pmatrix}10^{-17}&1\\1&1\end{pmatrix}$ e $\bb=(1,2)$, a solução é
+$\x\approx(1,1)$. Sem pivoteamento, $m_{21}=10^{17}$ e a segunda equação vira
+$(1-10^{17})x_2=2-10^{17}$; em dupla precisão, $1-10^{17}$ e $2-10^{17}$ são arredondados
+para $-10^{17}$, e o programa obtém $x_2=1$ e $x_1=0$, totalmente errado. Com pivoteamento
+parcial, as linhas são trocadas, $m_{21}=10^{-17}$, e obtém-se $\x=(1,1)$.
+\end{exemplo}
+
+% ==================================================================
+\section{Fatoração LU}
+
+Na eliminação de Gauss, os multiplicadores são usados e depois descartados. A fatoração $LU$
+os guarda numa matriz triangular inferior $L$; a matriz final escalonada é $U$.
+
+\begin{teorema}[Fatoração LU]
+Se a eliminação de Gauss pode ser feita sem trocas de linhas (todos os pivôs não nulos), então
+\[
+A=LU,\qquad
+L=\begin{pmatrix}
+1 & & & \\
+m_{21} & 1 & & \\
+\vdots & & \ddots & \\
+m_{n1} & m_{n2} & \cdots & 1
+\end{pmatrix},
+\qquad U=\text{matriz escalonada final}.
+\]
+Em geral (com trocas), existe uma matriz de permutação $P$ tal que $PA=LU$.
+\end{teorema}
+
+Para resolver $A\x=\bb$, escrevemos $PA\x=P\bb$, isto é, $LU\x=P\bb$, e resolvemos dois
+sistemas triangulares:
+\[
+L\y=P\bb\quad\text{(substituição progressiva)},\qquad U\x=\y\quad\text{(retrossubstituição)}.
+\]
+Além disso, $\det A=(-1)^{t}\,u_{11}u_{22}\cdots u_{nn}$, onde $t$ é o número de trocas.
+
+\begin{exemplo}[: fatoração sem trocas ($P=I$)]
+Para $A=\begin{pmatrix}2&1&1\\4&3&3\\8&7&9\end{pmatrix}$ e $\bb=(4,10,24)$:
+etapa 1, $m_{21}=2$ e $m_{31}=4$; etapa 2, $m_{32}=3$. Então
+\[
+L=\begin{pmatrix}1&0&0\\2&1&0\\4&3&1\end{pmatrix},\qquad
+U=\begin{pmatrix}2&1&1\\0&1&1\\0&0&2\end{pmatrix}.
+\]
+$L\y=\bb$: $y_1=4$, $y_2=10-2\cdot4=2$, $y_3=24-4\cdot4-3\cdot2=2$.
+$U\x=\y$: $x_3=1$, $x_2=2-1=1$, $x_1=\frac{4-1-1}{2}=1$. Logo $\x=(1,1,1)$ e
+$\det A=2\cdot1\cdot2=4$.
+\end{exemplo}
+
+\begin{exemplo}[: fatoração com troca ($PA=LU$)]
+Para $A=\begin{pmatrix}0&1&2\\1&1&1\\2&1&3\end{pmatrix}$ e $\bb=(8,6,13)$, o pivô
+$a_{11}=0$ obriga a trocar $L_1\leftrightarrow L_2$. Então
+\[
+P=\begin{pmatrix}0&1&0\\1&0&0\\0&0&1\end{pmatrix},\quad
+L=\begin{pmatrix}1&0&0\\0&1&0\\2&-1&1\end{pmatrix},\quad
+U=\begin{pmatrix}1&1&1\\0&1&2\\0&0&3\end{pmatrix},\quad
+P\bb=\begin{pmatrix}6\\8\\13\end{pmatrix}.
+\]
+$L\y=P\bb$ dá $\y=(6,8,9)$ e $U\x=\y$ dá $\x=(1,2,3)$. Como houve uma troca,
+$\det A=-(1\cdot1\cdot3)=-3$.
+\end{exemplo}
+
+\begin{atividade}{fatoração $PA=LU$, matriz $3\times3$}{\arqLUtres}
+Em cada etapa, confira o pivô, troque linhas se ele for zero e informe os multiplicadores; eles
+aparecem em verde na matriz $L$. Ao final, a caixa ``Resolver $A\x=\bb$ usando LU'' mostra
+$P\bb$, $\y$ e $\x$.
+\begin{enumerate}[nosep]
+  \item Clique em \emph{Exemplo: sem troca} e refaça o primeiro exemplo acima.
+  \item Clique em \emph{Exemplo: troca na etapa 1} e refaça o segundo exemplo. Observe como a
+        troca de linhas também troca os multiplicadores já guardados em $L$.
+  \item Clique em \emph{Exemplo: troca só na etapa 2}. Quem é $P$ neste caso?
+  \item Clique em \emph{Exemplo: A singular}. Qual elemento de $U$ se anula? O que isso diz
+        sobre $\det A$ e sobre o sistema?
+\end{enumerate}
+\end{atividade}
+
+\begin{atividade}{fatoração $PA=LU$, matriz $4\times4$}{\arqLUquatro}
+\begin{enumerate}[nosep]
+  \item No \emph{Exemplo: sem troca}, obtenha
+  $L=\left(\begin{smallmatrix}1&0&0&0\\2&1&0&0\\4&3&1&0\\3&4&1&1\end{smallmatrix}\right)$,
+  $U=\left(\begin{smallmatrix}2&1&1&0\\0&1&1&1\\0&0&2&2\\0&0&0&2\end{smallmatrix}\right)$,
+  $\y=(4,3,4,2)$ e $\x=(1,1,1,1)$. Calcule $\det A$.
+  \item No \emph{Exemplo: trocas nas etapas 1 e 3} (é a matriz do exemplo de eliminação de
+  Gauss), compare a matriz $U$ com a matriz $B_3$ obtida no aplicativo de Gauss.
+  \item Usando a fatoração do item 1, resolva à mão $A\x=\bb$ com outro vetor, por exemplo
+  $\bb=(3,8,24,24)$, sem refazer a eliminação. (Resposta: $\y=(3,2,6,1)$ e
+  $\x=(\frac34,-1,\frac52,\frac12)$.)
+\end{enumerate}
+\end{atividade}
+
+\paragraph{Por que fatorar?} Para um único sistema, a fatoração $LU$ mais as duas substituições
+custa exatamente o mesmo que a eliminação de Gauss. A vantagem aparece quando a \emph{mesma}
+matriz $A$ é usada com vários vetores $\bb$ (por exemplo, em processos iterativos ou em
+problemas com várias cargas): a parte cara, de ordem $n^3$, é feita uma única vez, e cada novo
+sistema custa só $2n^2$ operações.
+
+% ==================================================================
+\section{Custo computacional dos métodos diretos}
+
+Contamos as operações de ponto flutuante: multiplicações e divisões (M/D) e adições e
+subtrações (A/S). Para $n$ grande, só o termo de maior grau importa.
+
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}p{3.6cm}c}
+\toprule
+Método & M/D & A/S & Ordem\\
+\midrule
+Eliminação de Gauss (com retrossubstituição) & $\frac{n^3}{3}+n^2-\frac{n}{3}$ & $\frac{n^3}{3}+\frac{n^2}{2}-\frac{5n}{6}$ & $\frac23n^3$\\
+$LU$: fatoração & $\frac{n^3-n}{3}$ & $\frac{n^3}{3}-\frac{n^2}{2}+\frac{n}{6}$ & $\frac23n^3$\\
+$LU$: resolução ($L\y=P\bb$, $U\x=\y$) & $n^2$ & $n^2-n$ & $2n^2$\\
+Matriz inversa e produto $A^{-1}\bb$ & $n^3+n^2$ & $n^3-n^2$ & $2n^3$\\
+Cramer, determinantes por eliminação & \multicolumn{2}{l}{$(n+1)$ determinantes de custo $\approx\frac23n^3$} & $\frac23n^4$\\
+Cramer, determinantes por cofatores & \multicolumn{2}{l}{$M_n=nM_{n-1}+n$, $S_n=nS_{n-1}+n-1$} & $e\,(n+1)!$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Método & $n=4$ & $n=10$ & $n=20$ & $n=100$\\
+\midrule
+Eliminação de Gauss / $LU$ & 62 & 805 & 5\,910 & 681\,550\\
+Matriz inversa & 128 & 2\,000 & 16\,000 & 2\,000\,000\\
+Cramer (eliminação) & 189 & 6\,874 & 108\,149 & $6{,}7\times10^{7}$\\
+Cramer (cofatores) & 319 & $1{,}1\times10^{8}$ & $1{,}4\times10^{20}$ & $2{,}6\times10^{160}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Num computador de $10^{12}$ operações por segundo, com $n=20$, a eliminação de Gauss leva
+alguns nanossegundos, enquanto a regra de Cramer por cofatores levaria cerca de quatro anos e
+meio. No tamanho dos aplicativos ($n=4$), Cramer por cofatores já custa cerca de cinco vezes
+a eliminação.
+
+\paragraph{Conclusões.}
+\begin{itemize}[nosep]
+  \item Em ordem de custo, para um sistema: Gauss $\approx$ $LU$ $<$ inversa $<$ Cramer.
+  \item Nunca se calcula $A^{-1}$ para resolver $A\x=\bb$: custa cerca de três vezes mais e é
+        menos estável; mesmo com muitos vetores $\bb$, a $LU$ é melhor.
+  \item A regra de Cramer tem grande valor teórico, mas não é usada no cálculo numérico.
+  \item Aproveitar a estrutura da matriz muda tudo: para matrizes tridiagonais, o algoritmo de
+        Thomas custa $\approx8n$ operações, em vez de $\frac23n^3$.
+  \item Nenhum método direto corrige um problema \emph{mal condicionado}: o erro relativo é da
+        ordem de $\varepsilon\,\kappa(A)$, com $\varepsilon\approx10^{-16}$ e $\kappa(A)$ o número
+        de condição. Para a matriz de Hilbert $13\times13$, $\kappa\approx5\times10^{17}$ e a
+        solução calculada não tem nenhum algarismo correto, qualquer que seja o método.
+\end{itemize}
+
+\begin{leitura}{custo computacional (3 páginas)}{\pdfCusto}
+Dedução das contagens de operações da eliminação de Gauss, da fatoração $LU$, da matriz
+inversa e da regra de Cramer (por cofatores e por eliminação), com a tabela comparativa e o
+caso $n=4$ dos aplicativos.
+\end{leitura}
+
+\begin{leitura}{comparação computacional dos métodos diretos (10 páginas)}{\pdfComp}
+Comparação ampliada (Gauss com e sem pivoteamento, Gauss-Jordan, $LU$, Cholesky, $LDL^T$,
+$QR$, inversa, Cramer e Thomas): contagem exata de operações, memória, tempos medidos em
+Python/NumPy e precisão numérica em matrizes bem e mal condicionadas (matriz de Hilbert).
+\end{leitura}
+
+% ==================================================================
+\section{Métodos iterativos: a ideia}
+
+Para sistemas muito grandes e esparsos (com a maioria dos coeficientes nulos), os métodos
+diretos podem ser caros e destruir a esparsidade (a eliminação preenche posições que eram
+zero). Os métodos iterativos partem de um \emph{chute inicial} $\x^{(0)}$ e geram uma
+sequência $\x^{(1)},\x^{(2)},\dots$ que, sob certas condições, converge para a solução.
+
+A ideia é reescrever $A\x=\bb$ na forma equivalente $\x=C\x+\mathbf g$ e iterar
+\[
+\x^{(k+1)}=C\x^{(k)}+\mathbf g,\qquad k=0,1,2,\dots
+\]
+Cada iteração custa da ordem de $2n^2$ operações para matriz cheia (bem menos para matriz
+esparsa). Se forem necessárias $k$ iterações, o custo total $\approx2kn^2$ é menor que o de
+Gauss ($\frac23n^3$) sempre que $k<n/3$.
+
+\paragraph{Critério de parada.} Interrompemos as iterações quando
+\[
+d^{(k)}=\max_{1\le i\le n}\bigl|x_i^{(k)}-x_i^{(k-1)}\bigr|<\varepsilon
+\]
+(tolerância $\varepsilon$ dada) ou quando se atinge um número máximo $N$ de iterações. Também
+é comum usar o erro relativo $d^{(k)}/\max_i|x_i^{(k)}|$. Os aplicativos usam $d^{(k)}<\varepsilon$
+com $\varepsilon=0{,}001$.
+
+% ==================================================================
+\section{Método de Gauss-Jacobi}
+
+Supondo $a_{ii}\neq0$, isolamos $x_i$ na $i$-ésima equação e usamos, no lado direito, os
+valores da iteração anterior:
+\[
+x_i^{(k+1)}=\frac{1}{a_{ii}}\Bigl(b_i-\sum_{j\neq i}a_{ij}\,x_j^{(k)}\Bigr),\qquad i=1,\dots,n.
+\]
+Para $n=3$:
+\[
+\begin{cases}
+x_1^{(k+1)}=\dfrac{b_1-a_{12}x_2^{(k)}-a_{13}x_3^{(k)}}{a_{11}}\\[8pt]
+x_2^{(k+1)}=\dfrac{b_2-a_{21}x_1^{(k)}-a_{23}x_3^{(k)}}{a_{22}}\\[8pt]
+x_3^{(k+1)}=\dfrac{b_3-a_{31}x_1^{(k)}-a_{32}x_2^{(k)}}{a_{33}}
+\end{cases}
+\]
+Se algum $a_{ii}=0$, é preciso reordenar as equações.
+
+\begin{teorema}[Critério das linhas]
+Seja
+\[
+\alpha_i=\frac{1}{|a_{ii}|}\sum_{j\neq i}|a_{ij}|,\qquad i=1,\dots,n.
+\]
+Se $\displaystyle\max_i\alpha_i<1$ (isto é, $A$ é \emph{estritamente diagonalmente dominante}
+por linhas), o método de Gauss-Jacobi converge para a solução, qualquer que seja $\x^{(0)}$.
+\end{teorema}
+
+O critério é apenas \emph{suficiente}: o método pode convergir mesmo quando ele falha.
+Trocar a ordem das equações pode fazer o critério passar a valer.
+
+\begin{exemplo}[: Gauss-Jacobi (exemplo inicial do aplicativo)]
+Resolva com $\x^{(0)}=(0,0,0)$ e $\varepsilon=0{,}001$:
+\[
+\begin{cases}
+5x_1+2x_2+x_3=4\\
+-x_1-6x_2-3x_3=16\\
+-3x_1+2x_2+7x_3=-12
+\end{cases}
+\qquad
+\alpha_1=\tfrac{2+1}{5}=\tfrac35,\quad
+\alpha_2=\tfrac{1+3}{6}=\tfrac23,\quad
+\alpha_3=\tfrac{3+2}{7}=\tfrac57.
+\]
+Como $\max\alpha_i=\frac57<1$, há convergência. As iterações são
+\[
+x_1^{(k+1)}=\frac{4-2x_2^{(k)}-x_3^{(k)}}{5},\quad
+x_2^{(k+1)}=\frac{16+x_1^{(k)}+3x_3^{(k)}}{-6},\quad
+x_3^{(k+1)}=\frac{-12+3x_1^{(k)}-2x_2^{(k)}}{7}.
+\]
+\begin{center}
+\begin{tabular}{rrrrr}
+\toprule
+$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ & $x_3^{(k)}$ & $d^{(k)}$\\
+\midrule
+0 & 0 & 0 & 0 & --\\
+1 & 0{,}8000 & $-2{,}6667$ & $-1{,}7143$ & 2{,}6667\\
+2 & 2{,}2095 & $-1{,}9429$ & $-0{,}6095$ & 1{,}4095\\
+3 & 1{,}6990 & $-2{,}7302$ & $-0{,}2122$ & 0{,}7873\\
+4 & 1{,}9345 & $-2{,}8437$ & $-0{,}2061$ & 0{,}2355\\
+5 & 1{,}9787 & $-2{,}8860$ & $-0{,}0727$ & 0{,}1334\\
+6 & 1{,}9690 & $-2{,}9601$ & $-0{,}0417$ & 0{,}0740\\
+7 & 1{,}9924 & $-2{,}9740$ & $-0{,}0247$ & 0{,}0234\\
+8 & 1{,}9945 & $-2{,}9864$ & $-0{,}0107$ & 0{,}0140\\
+9 & 1{,}9967 & $-2{,}9937$ & $-0{,}0062$ & 0{,}0074\\
+10 & 1{,}9987 & $-2{,}9963$ & $-0{,}0032$ & 0{,}0030\\
+11 & 1{,}9992 & $-2{,}9982$ & $-0{,}0016$ & 0{,}0019\\
+\textbf{12} & \textbf{1{,}9996} & $\mathbf{-2{,}9991}$ & $\mathbf{-0{,}0009}$ & \textbf{0{,}0009}\\
+\bottomrule
+\end{tabular}
+\end{center}
+A parada ocorre em $k=12$. A solução exata é $\x=(2,-3,0)$.
+\end{exemplo}
+
+\begin{atividade}{método de Gauss-Jacobi}{\arqJacobi}
+Nas etapas 1 e 2, calcule $\x^{(1)}$ e $\x^{(2)}$ (as fórmulas mostram em azul os valores da
+iteração anterior). Depois veja o critério das linhas e marque ``Continuar as iterações no
+GeoGebra'' para ver a tabela completa. Use as barras de rolagem para percorrer a tela.
+\begin{enumerate}[nosep]
+  \item Confira as duas primeiras linhas da tabela do exemplo.
+  \item Com $N=10$, o aplicativo avisa que o erro ainda é $\ge\varepsilon$. Aumente $N$ para
+        $12$ e confira a parada em $k=12$.
+  \item Mude o chute inicial para $(1,1,1)$ e depois para $(10,-10,10)$. O número de iterações
+        muda? A solução muda? Por quê?
+  \item Troque a ordem das duas primeiras equações e observe o critério das linhas e a tabela.
+  \item Diminua $\varepsilon$ para $10^{-6}$ e observe quantas iterações a mais são necessárias.
+\end{enumerate}
+\end{atividade}
+
+% ==================================================================
+\section{Método de Gauss-Seidel}
+
+O método de Gauss-Seidel é uma modificação simples: ao calcular $x_i^{(k+1)}$, usamos os
+valores \emph{já atualizados} $x_1^{(k+1)},\dots,x_{i-1}^{(k+1)}$:
+\[
+x_i^{(k+1)}=\frac{1}{a_{ii}}\Bigl(b_i-\sum_{j<i}a_{ij}\,x_j^{(k+1)}-\sum_{j>i}a_{ij}\,x_j^{(k)}\Bigr),
+\qquad i=1,\dots,n.
+\]
+Para $n=3$:
+\[
+\begin{cases}
+x_1^{(k+1)}=\dfrac{b_1-a_{12}x_2^{(k)}-a_{13}x_3^{(k)}}{a_{11}}\\[8pt]
+x_2^{(k+1)}=\dfrac{b_2-a_{21}\textcolor{vermelho}{x_1^{(k+1)}}-a_{23}x_3^{(k)}}{a_{22}}\\[8pt]
+x_3^{(k+1)}=\dfrac{b_3-a_{31}\textcolor{vermelho}{x_1^{(k+1)}}-a_{32}\textcolor{vermelho}{x_2^{(k+1)}}}{a_{33}}
+\end{cases}
+\]
+Além de, em geral, convergir mais depressa, o método só precisa guardar um vetor.
+
+\begin{teorema}[Critério de Sassenfeld]
+Sejam
+\[
+\beta_1=\frac{1}{|a_{11}|}\sum_{j=2}^{n}|a_{1j}|,\qquad
+\beta_i=\frac{1}{|a_{ii}|}\Bigl(\sum_{j<i}|a_{ij}|\,\beta_j+\sum_{j>i}|a_{ij}|\Bigr),\quad i=2,\dots,n.
+\]
+Se $\displaystyle\max_i\beta_i<1$, o método de Gauss-Seidel converge para a solução,
+qualquer que seja $\x^{(0)}$. Se o critério das linhas vale, o de Sassenfeld também vale.
+\end{teorema}
+
+\begin{exemplo}[: Gauss-Seidel (exemplo inicial do aplicativo)]
+Resolva com $\x^{(0)}=(0,0,0)$ e $\varepsilon=0{,}001$:
+\[
+\begin{cases}
+6x_1-2x_2=14\\
+3x_1+9x_2-2x_3=31\\
+x_1+2x_2-6x_3=19
+\end{cases}
+\qquad
+\beta_1=\tfrac26=\tfrac13,\quad
+\beta_2=\tfrac{3\cdot\frac13+2}{9}=\tfrac13,\quad
+\beta_3=\tfrac{1\cdot\frac13+2\cdot\frac13}{6}=\tfrac16.
+\]
+Como $\max\beta_i=\frac13<1$, há convergência.
+\begin{center}
+\begin{tabular}{rrrrr@{\qquad}r}
+\toprule
+$k$ & $x_1^{(k)}$ & $x_2^{(k)}$ & $x_3^{(k)}$ & $d^{(k)}$ & $d^{(k)}$ com Jacobi\\
+\midrule
+0 & 0 & 0 & 0 & -- & --\\
+1 & 2{,}3333 & 2{,}6667 & $-1{,}8889$ & 2{,}6667 & 3{,}4444\\
+2 & 3{,}2222 & 1{,}9506 & $-1{,}9794$ & 0{,}8889 & 1{,}5370\\
+3 & 2{,}9835 & 2{,}0101 & $-1{,}9994$ & 0{,}2387 & 0{,}4938\\
+4 & 3{,}0034 & 1{,}9990 & $-1{,}9998$ & 0{,}0198 & 0{,}0974\\
+5 & 2{,}9997 & 2{,}0002 & $-2{,}0000$ & 0{,}0037 & 0{,}0325\\
+\textbf{6} & \textbf{3{,}0001} & \textbf{2{,}0000} & $\mathbf{-2{,}0000}$ & \textbf{0{,}0004} & 0{,}0056\\
+\bottomrule
+\end{tabular}
+\end{center}
+Gauss-Seidel para em $k=6$; Gauss-Jacobi, no mesmo sistema, precisaria de $k=8$. A solução
+exata é $\x=(3,2,-2)$.
+\end{exemplo}
+
+\begin{atividade}{método de Gauss-Seidel}{\arqSeidel}
+Nas etapas 1 e 2, calcule $x_1$, $x_2$, $x_3$ \emph{nessa ordem}, usando sempre os valores já
+atualizados (em vermelho nas fórmulas). Depois veja o critério de Sassenfeld, a tabela
+completa e a comparação com Gauss-Jacobi.
+\begin{enumerate}[nosep]
+  \item Confira as duas primeiras linhas da tabela do exemplo.
+  \item O aplicativo informa em que iteração Gauss-Jacobi pararia. Confira que é $k=8$.
+  \item Digite no aplicativo de Gauss-Seidel o sistema do exemplo de Gauss-Jacobi. Em quantas
+        iterações Gauss-Seidel para? (Resposta esperada: $k=8$, contra $k=12$ de Jacobi.)
+  \item Gere sistemas com \emph{Novo sistema aleatório} e compare $\max\alpha_i$ (Jacobi) e
+        $\max\beta_i$ (Sassenfeld). Qual costuma ser menor?
+\end{enumerate}
+\end{atividade}
+
+% ==================================================================
+\section{Métodos diretos ou iterativos?}
+
+\begin{center}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{5.2cm}>{\raggedright\arraybackslash}p{5.2cm}}
+\toprule
+ & Diretos (Gauss, $LU$) & Iterativos (Jacobi, Seidel)\\
+\midrule
+Resultado & exato em aritmética exata (a menos de arredondamentos) & aproximação com tolerância $\varepsilon$\\
+Custo & $\approx\frac23n^3$, previsível & $\approx2n^2$ por iteração (menos se esparsa)\\
+Convergência & sempre termina (se $\det A\neq0$) & depende de $A$ (critérios das linhas e de Sassenfeld)\\
+Memória & preenche a matriz (perde a esparsidade) & preserva a esparsidade\\
+Erros de arredondamento & acumulam ao longo da eliminação & cada iteração ``corrige'' a anterior\\
+Indicados para & sistemas pequenos e médios, matrizes cheias, vários $\bb$ ($LU$) & sistemas grandes e esparsos, diagonalmente dominantes\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==================================================================
+\section{Exercícios}
+
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=*]
+\item Resolva por eliminação de Gauss:
+  $\begin{cases}x_1+x_2+x_3=6\\2x_1+x_2-x_3=1\\x_1-x_2+2x_3=5\end{cases}$.
+
+\item No aplicativo de eliminação de Gauss, resolva os exemplos \emph{troca + SPI} e
+  \emph{sistema impossível}. Para o SPI, escreva a solução geral.
+
+\item Obtenha a fatoração $PA=LU$ de
+  $A=\begin{pmatrix}1&2&1\\2&4&3\\1&3&2\end{pmatrix}$ e use-a para resolver $A\x=(4,9,6)$.
+  Confira no aplicativo $3\times3$ (\emph{Exemplo: troca só na etapa 2}).
+
+\item Use a fatoração do primeiro exemplo de $LU$ ($A=\left(\begin{smallmatrix}2&1&1\\4&3&3\\8&7&9\end{smallmatrix}\right)$)
+  para resolver $A\x=(1,2,6)$ sem refazer a eliminação.
+
+\item Calcule $\det A$ para as matrizes dos dois exemplos de $LU$ usando $U$ e o número de
+  trocas, e confira pela regra de Sarrus.
+
+\item Um computador faz $10^{9}$ operações por segundo. Estime o tempo para resolver um sistema
+  com $n=1000$ por eliminação de Gauss e pela matriz inversa. Quantos sistemas com a mesma
+  matriz podem ser resolvidos pela $LU$ no tempo de uma única inversão?
+
+\item Para o sistema
+  $\begin{cases}10x_1+2x_2+x_3=7\\x_1+5x_2+x_3=-8\\2x_1+3x_2+10x_3=6\end{cases}$,
+  com $\x^{(0)}=(0,0,0)$ e $\varepsilon=0{,}001$:
+  \begin{enumerate}[label=(\alph*),nosep]
+  \item verifique os critérios das linhas e de Sassenfeld;
+  \item faça duas iterações de Gauss-Jacobi e duas de Gauss-Seidel à mão;
+  \item use os aplicativos para obter o número de iterações de cada método até a parada.
+  \end{enumerate}
+
+\item O sistema $\begin{cases}2x_1+10x_2=12\\8x_1+x_2=9\end{cases}$ não satisfaz o critério das
+  linhas. Reordene as equações para que satisfaça e resolva por Gauss-Seidel com
+  $\x^{(0)}=(0,0)$ e duas iterações.
+
+\item \textbf{(GeoGebra)} No aplicativo de Gauss-Jacobi, construa um sistema $3\times3$ em que
+  o critério das linhas falhe mas o método ainda convirja (sugestão: um único $\alpha_i$
+  ligeiramente maior que 1). O que isso mostra sobre o critério?
+\end{enumerate}
+
+\subsection*{Respostas}
+\begin{enumerate}[label=\textbf{\arabic*.},leftmargin=*,nosep]
+\item $m_{21}=2$, $m_{31}=1$, $m_{32}=2$; $U$ com diagonal $1,-1,7$; $\x=(1,2,3)$.
+\item SPI: após a troca $L_2\leftrightarrow L_3$ na etapa 2, a última linha fica
+  $(0\ 0\ 0\ 0\,|\,0)$. Restam $x_1+2x_2-x_3+x_4=3$, $-x_2+2x_3=1$ e $3x_3-3x_4=0$; com
+  $x_4=t$ livre, $\x=(5-4t,\;2t-1,\;t,\;t)$, $t\in\mathbb R$. SI: aparece a linha
+  $(0\ 0\ 0\ 0\,|\,-2)$, que vem de $L_2-L_1$.
+\item $P$ troca as linhas 2 e 3; $L=\left(\begin{smallmatrix}1&0&0\\1&1&0\\2&0&1\end{smallmatrix}\right)$,
+  $U=\left(\begin{smallmatrix}1&2&1\\0&1&1\\0&0&1\end{smallmatrix}\right)$, $P\bb=(4,6,9)$,
+  $\y=(4,2,1)$, $\x=(1,1,1)$.
+\item $\y=(1,0,2)$ e $\x=(\tfrac12,-1,1)$.
+\item $4$ e $-3$.
+\item Gauss: $\approx\frac23\cdot10^9$ operações, cerca de $0{,}67$ s; inversa: $\approx2\cdot10^9$, cerca de $2$ s.
+  Com a $LU$ já feita, cada sistema custa $2\cdot10^{6}$ operações ($2$ ms): no tempo da
+  inversão, fatora-se e resolvem-se cerca de $660$ sistemas.
+\item (a) $\alpha=(0{,}3;\,0{,}4;\,0{,}5)$; $\beta=(0{,}3;\,0{,}26;\,0{,}138)$. (b) Jacobi:
+  $\x^{(1)}=(0{,}7;\,-1{,}6;\,0{,}6)$, $\x^{(2)}=(0{,}96;\,-1{,}86;\,0{,}94)$; Seidel:
+  $\x^{(1)}=(0{,}7;\,-1{,}74;\,0{,}982)$, $\x^{(2)}=(0{,}9498;\,-1{,}9864;\,1{,}0059)$.
+  (c) Jacobi para em $k=8$ e Seidel em $k=5$; a solução é $\x=(1,-2,1)$.
+\item Trocando as equações: $8x_1+x_2=9$, $2x_1+10x_2=12$; $\alpha=(\tfrac18,\tfrac15)$.
+  Seidel: $\x^{(1)}=(1{,}125;\,0{,}975)$, $\x^{(2)}=(1{,}0031;\,0{,}9994)$; solução $(1,1)$.
+\item O critério das linhas é apenas suficiente: sua falha não implica divergência.
+\end{enumerate}

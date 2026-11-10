@@ -1,0 +1,731 @@
+% Capítulo gerado a partir de ponto_flutuante.tex (arquivos usados neste capítulo)
+\def\arqBase{MudancaDeBase.ggb}
+\def\arqSisF{SistemaPontoFlutuante_reta.ggb}
+\def\arqMoito{Maquina_PontoFlutuante_8bits.ggb}
+\def\arqMdezesseis{Maquina_PontoFlutuante_16bits.ggb}
+\def\arqMtrintadois{Maquina_PontoFlutuante_32bits.ggb}
+\def\arqMsessentaquatro{Maquina_PontoFlutuante_64bits.ggb}
+\providecommand{\bits}[1]{\texttt{#1}}
+\chapter{Mudança de base e aritmética de ponto flutuante}\label{cap:pontoflutuante}
+
+\begin{tcolorbox}[colback=gray!4,colframe=gray!50,title={Como usar os aplicativos e os textos deste capítulo},fonttitle=\bfseries]
+Os quadros laranja \emph{Atividade no GeoGebra} trazem o link \textbf{[abrir o aplicativo]}.
+São seis aplicativos. Os quatro primeiros substituem as planilhas de Excel das
+\emph{máquinas} de 8, 16, 32 e 64 bits:
+\begin{itemize}[nosep]
+  \item máquinas de ponto flutuante: \ggbabrir{\arqMoito}{8 bits}, \ggbabrir{\arqMdezesseis}{16 bits},
+        \ggbabrir{\arqMtrintadois}{32 bits (\emph{float})} e \ggbabrir{\arqMsessentaquatro}{64 bits (\emph{double})}.
+        Cada bit é uma caixa de seleção; o aplicativo decodifica a palavra, codifica um número
+        digitado (por arredondamento ou truncamento) e calcula os erros;
+  \item \ggbabrir{\arqBase}{mudança de base}, com as divisões e as multiplicações sucessivas passo a passo;
+  \item \ggbabrir{\arqSisF}{sistema $F(\beta,t,m,M)$ na reta}, que mostra todos os números de
+        uma máquina pequena e o valor $fl(x)$ de qualquer $x$.
+\end{itemize}
+
+\end{tcolorbox}
+
+% ==================================================================
+\section{Por que estudar a representação dos números}
+
+A resolução de um problema por métodos numéricos passa por várias fases: o problema real,
+o levantamento de dados, a construção do modelo matemático, a escolha do método, a
+implementação computacional e a análise dos resultados. Não é raro que o resultado final
+fique distante do esperado, mesmo com todas as fases feitas corretamente. Os resultados
+dependem também
+\begin{itemize}[nosep]
+  \item da precisão dos dados de entrada;
+  \item da forma como esses dados são representados no computador;
+  \item das operações numéricas efetuadas.
+\end{itemize}
+
+\begin{exemplo}[{: a área de um círculo}]
+A área de um círculo de raio $100$\,m, calculada com $\pi\approx3{,}14$, $\pi\approx3{,}1416$ e
+$\pi\approx3{,}141592654$, dá
+\[
+A=31\,400\ \text{m}^2,\qquad A=31\,416\ \text{m}^2,\qquad A=31\,415{,}9265\ \text{m}^2 .
+\]
+As diferenças vêm da aproximação usada para $\pi$, que é irracional. Nenhum computador obtém
+a área ``exatamente''.
+\end{exemplo}
+
+\begin{exemplo}[{: um somatório}]
+Calcule $S=\sum_{i=1}^{30\,000}x_i$ com $x_i=0{,}5$ e com $x_i=0{,}11$. As respostas exatas são
+$15\,000$ e $3\,300$. Somando num programa:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & $x_i=0{,}5$ & $x_i=0{,}11$\\
+\midrule
+precisão simples (32 bits) & $15\,000$ & $3\,300{,}985$\\
+precisão dupla (64 bits)   & $15\,000$ & $3\,300{,}000\,000\,000\,628\,5$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Com $0{,}5$ o resultado é exato; com $0{,}11$, não. A explicação está neste capítulo:
+$0{,}5=(0{,}1)_2$ tem representação binária finita, mas $0{,}11$ não tem. Cada parcela já entra
+com um pequeno erro, e cada soma acrescenta outro.
+\end{exemplo}
+
+
+
+Há três fontes de erro num cálculo numérico:
+\begin{enumerate}[nosep]
+  \item \textbf{incerteza dos dados}: os dados vêm de medidas com instrumentos de precisão finita;
+  \item \textbf{erros de arredondamento}: vêm da forma finita de representar números na máquina;
+  \item \textbf{erros de truncamento}: aparecem quando um processo infinito (uma série, um limite,
+        uma integral) é substituído por um processo finito.
+\end{enumerate}
+Este capítulo trata do segundo tipo.
+
+% ==================================================================
+\section{Sistemas de numeração posicionais}
+
+A \emph{base} de um sistema de numeração é a quantidade de símbolos usados para escrever
+os números.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Base & Nome & Símbolos\\
+\midrule
+2  & binário      & 0, 1\\
+8  & octal        & 0, 1, 2, 3, 4, 5, 6, 7\\
+10 & decimal      & 0, 1, \dots, 9\\
+16 & hexadecimal  & 0, 1, \dots, 9, A, B, C, D, E, F\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A base 10 é a do nosso dia a dia. A base 2 é natural nos circuitos lógicos: 0 e 1 correspondem a
+dois níveis de tensão (\emph{low} e \emph{high}), a falso e verdadeiro, a desligado e ligado.
+As bases 8 e 16 servem para escrever números binários de forma compacta. Quando a base não é
+10, ela vem indicada no índice: $(1010001011)_2$, $(453234)_8$, $(23A0D)_{16}$.
+
+\begin{definicao}[notação posicional]
+Num sistema posicional de base $\beta$, o número
+$(d_{p-1}d_{p-2}\dots d_1d_0\,,\,d_{-1}\dots d_{-n})_\beta$, com $0\le d_i\le\beta-1$, vale
+\[
+D=\sum_{i=-n}^{p-1}d_i\,\beta^{\,i}
+ =d_{p-1}\beta^{p-1}+\dots+d_1\beta+d_0+d_{-1}\beta^{-1}+\dots+d_{-n}\beta^{-n},
+\]
+em que $p$ é o número de dígitos à esquerda da vírgula e $n$ o número de dígitos à direita.
+O valor de cada símbolo depende da sua posição.
+\end{definicao}
+
+Em base 2, cada dígito é um \emph{bit}. O bit mais à esquerda é o MSB
+(\emph{most significant bit}) e o mais à direita é o LSB (\emph{least significant bit}).
+
+\begin{center}
+\small
+\begin{tabular}{cccc|cccc}
+\toprule
+hex & dec & bin & & hex & dec & bin\\
+\midrule
+0 & 0 & 0000 && 8 & 8  & 1000\\
+1 & 1 & 0001 && 9 & 9  & 1001\\
+2 & 2 & 0010 && A & 10 & 1010\\
+3 & 3 & 0011 && B & 11 & 1011\\
+4 & 4 & 0100 && C & 12 & 1100\\
+5 & 5 & 0101 && D & 13 & 1101\\
+6 & 6 & 0110 && E & 14 & 1110\\
+7 & 7 & 0111 && F & 15 & 1111\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ==================================================================
+\section{Da base \texorpdfstring{$\beta$}{beta} para a base 10}
+
+Basta somar os dígitos multiplicados pelos pesos $\beta^{\,i}$.
+
+\begin{exemplo}
+\begin{align*}
+(11011)_2  &=1\cdot2^4+1\cdot2^3+0\cdot2^2+1\cdot2^1+1\cdot2^0=16+8+2+1=27,\\
+(372)_8    &=3\cdot8^2+7\cdot8+2=192+56+2=250,\\
+(24{,}6)_8 &=2\cdot8+4+6\cdot8^{-1}=16+4+0{,}75=20{,}75,\\
+(356)_{16} &=3\cdot16^2+5\cdot16+6=768+80+6=854,\\
+(2AF)_{16} &=2\cdot16^2+10\cdot16+15=512+160+15=687,\\
+(1000{,}011)_2&=8+0\cdot2^{-1}+1\cdot2^{-2}+1\cdot2^{-3}=8+0{,}25+0{,}125=8{,}375.
+\end{align*}
+\end{exemplo}
+
+% ==================================================================
+\section{Da base 10 para a base \texorpdfstring{$\beta$}{beta}}
+
+O número é separado em parte inteira e parte fracionária, que são convertidas por processos
+diferentes.
+
+\subsection{Parte inteira: divisões sucessivas}
+
+Seja $N$ inteiro com $(N)_{10}=(c_k\dots c_2c_1c_0)_\beta$. Então
+\[
+N=c_k\beta^k+\dots+c_2\beta^2+c_1\beta+c_0=\beta\,\underbrace{(c_k\beta^{k-1}+\dots+c_2\beta+c_1)}_{q_1}+c_0 .
+\]
+Logo $c_0$ é o \emph{resto} da divisão de $N$ por $\beta$ e $q_1$ é o quociente. Repetindo
+o raciocínio com $q_1$, obtemos $c_1$, e assim por diante, até o quociente ser zero.
+
+\begin{tcolorbox}[colback=azul!3,colframe=azul!60,title={Algoritmo: inteiro decimal $\to$ base $\beta$},fonttitle=\bfseries]
+\begin{description}[nosep,font=\normalfont\bfseries]
+  \item[Passo 0:] $k=0$, $N_0=N$.
+  \item[Passo 1:] obtenha $q_k$ e $r_k$ tais que $N_k=\beta\,q_k+r_k$, $0\le r_k<\beta$; faça $c_k=r_k$.
+  \item[Passo 2:] se $q_k=0$, pare. Caso contrário, faça $N_{k+1}=q_k$, $k=k+1$ e volte ao passo 1.
+\end{description}
+Os restos, lidos \textbf{de baixo para cima} (do último para o primeiro), formam o número na base $\beta$.
+\end{tcolorbox}
+
+\begin{exemplo}
+\[
+\begin{array}{rcl}
+25&=&2\cdot12+\mathbf{1}\\
+12&=&2\cdot6+\mathbf{0}\\
+6&=&2\cdot3+\mathbf{0}\\
+3&=&2\cdot1+\mathbf{1}\\
+1&=&2\cdot0+\mathbf{1}
+\end{array}
+\ \Rightarrow\ 25=(11001)_2,
+\qquad
+\begin{array}{rcl}
+2834&=&8\cdot354+\mathbf{2}\\
+354&=&8\cdot44+\mathbf{2}\\
+44&=&8\cdot5+\mathbf{4}\\
+5&=&8\cdot0+\mathbf{5}
+\end{array}
+\ \Rightarrow\ 2834=(5422)_8 .
+\]
+Da mesma forma, $37=(100101)_2$ e $2834=16\cdot177+2$, $177=16\cdot11+1$, $11=16\cdot0+11$,
+logo $2834=(B12)_{16}$.
+\end{exemplo}
+
+\subsection{Parte fracionária: multiplicações sucessivas}
+
+Seja $0<r<1$ com $(r)_{10}=(0{,}d_1d_2d_3\dots)_\beta$. Multiplicando por $\beta$:
+\[
+\beta\,r=d_1+\underbrace{(0{,}d_2d_3\dots)_\beta}_{\text{parte fracionária}} .
+\]
+A parte inteira de $\beta r$ é $d_1$. Repetindo com a parte fracionária, obtemos $d_2$, $d_3$,\dots
+
+\begin{tcolorbox}[colback=azul!3,colframe=azul!60,title={Algoritmo: fração decimal $\to$ base $\beta$},fonttitle=\bfseries]
+\begin{description}[nosep,font=\normalfont\bfseries]
+  \item[Passo 0:] $r_1=r$, $k=1$.
+  \item[Passo 1:] calcule $\beta r_k$; faça $d_k=\lfloor\beta r_k\rfloor$ (parte inteira).
+  \item[Passo 2:] faça $r_{k+1}=\beta r_k-d_k$. Se $r_{k+1}=0$, pare.
+  \item[Passo 3:] faça $k=k+1$ e volte ao passo 1.
+\end{description}
+As partes inteiras, lidas \textbf{de cima para baixo}, formam $0{,}d_1d_2d_3\dots$ Se o processo não
+terminar, paramos depois do número de dígitos desejado.
+\end{tcolorbox}
+
+\begin{exemplo}[{: $8{,}375$ e $4{,}8$ em binário}]
+Parte inteira: $8=(1000)_2$ e $4=(100)_2$. Partes fracionárias:
+\[
+\begin{array}{rcll}
+0{,}375\times2&=&\mathbf{0}{,}75\\
+0{,}75\times2&=&\mathbf{1}{,}5\\
+0{,}5\times2&=&\mathbf{1}{,}0&\text{(fim)}
+\end{array}
+\qquad\qquad
+\begin{array}{rcll}
+0{,}8\times2&=&\mathbf{1}{,}6\\
+0{,}6\times2&=&\mathbf{1}{,}2\\
+0{,}2\times2&=&\mathbf{0}{,}4\\
+0{,}4\times2&=&\mathbf{0}{,}8&\text{(volta ao início)}
+\end{array}
+\]
+Logo $8{,}375=(1000{,}011)_2$, uma expansão finita, e
+$4{,}8=(100{,}\overline{1100})_2=(100{,}110011001100\dots)_2$, uma expansão infinita e periódica.
+\end{exemplo}
+
+\begin{exemplo}[{: $3{,}38$ e $57{,}3$ (Aula 01)}]
+Para $0{,}38$, as multiplicações dão $0{,}76$; $1{,}52$; $1{,}04$; $0{,}08$; $0{,}16$; $0{,}32$; $0{,}64$; $1{,}28$;\dots,
+e então $0{,}38\approx(0{,}01100001)_2=0{,}37890625$ com 8 dígitos. Portanto
+$3{,}38\approx(11{,}01100001)_2$. Quanto mais dígitos, melhor a aproximação.
+
+Para $57{,}3$: $57=(111001)_2$ e $0{,}3=(0{,}0\overline{1001})_2$, logo
+$57{,}3=(111001{,}0100110011001\dots)_2$.
+\end{exemplo}
+
+\begin{observacao}
+Uma fração $p/q$ irredutível tem expansão finita na base $\beta$ se, e somente se, todo fator primo
+de $q$ divide $\beta$. Em base 2, só têm expansão finita os racionais com denominador potência de 2:
+$1/8=(0{,}001)_2$, $1/16=(0{,}0001)_2$, $5{,}625=(101{,}101)_2$. Já $1/3$, $1/5$ e $1/10$ são periódicos:
+\[
+\tfrac13=(0{,}\overline{01})_2,\qquad \tfrac15=(0{,}\overline{0011})_2,\qquad
+\tfrac1{10}=(0{,}0\overline{0011})_2 .
+\]
+Um número com expansão decimal finita, como $0{,}1$, pode ter expansão binária infinita.
+\end{observacao}
+
+\subsection{Entre as bases 2, 8 e 16}
+
+Como $8=2^3$ e $16=2^4$, basta agrupar os bits de 3 em 3 (octal) ou de 4 em 4 (hexadecimal) a partir da
+vírgula:
+\[
+(101101{,}101)_2=(\underbrace{101}_{5}\,\underbrace{101}_{5}{,}\underbrace{101}_{5})_2=(55{,}5)_8,
+\qquad
+(0010\,1101{,}1010)_2=(2D{,}A)_{16} .
+\]
+É por isso que as palavras de máquina são escritas em hexadecimal.
+
+\begin{atividade}{mudança de base passo a passo}{\arqBase}
+Digite um número decimal (até 9 casas decimais), escolha a base $\beta$ (de 2 a 16) e o número de
+dígitos fracionários. O aplicativo mostra:
+\begin{itemize}[nosep]
+  \item à esquerda, as divisões sucessivas da parte inteira, com os restos em vermelho;
+  \item no centro, as multiplicações sucessivas da parte fracionária;
+  \item à direita, o resultado, a verificação pela notação posicional, o erro cometido ao parar e a
+        conferência com o comando \texttt{ToBase} do GeoGebra;
+  \item no quadro de baixo, a conversão de um inteiro de uma base qualquer para decimal
+        (\texttt{FromBase}).
+\end{itemize}
+\textbf{Tarefas.} (a) Reproduza os exemplos $25$, $37$, $2834$ (bases 8 e 16), $8{,}375$, $4{,}8$,
+$3{,}38$ e $57{,}3$.
+(b) Converta $0{,}1$ para a base 2 com 4, 8, 16 e 24 dígitos e anote o erro em cada caso.
+Quantos dígitos binários são necessários para que o erro fique abaixo de $10^{-6}$?
+(c) Ache três números com expansão finita em base 2 e infinita em base 3.
+\end{atividade}
+
+% ==================================================================
+\section{Representação em ponto flutuante}
+
+Um número real $x\neq0$ pode ser escrito em \emph{ponto flutuante normalizado} na base $\beta$:
+\[
+x=\pm\,(0{,}d_1d_2\dots d_t)_\beta\times\beta^{\,e},\qquad d_1\neq0,\qquad -m\le e\le M,
+\]
+em que $0{,}d_1\dots d_t$ é a \emph{mantissa}, $t$ é o número de dígitos da mantissa e $e$ é o
+\emph{expoente}, limitado por $-m$ e $M$. Esse conjunto de números é indicado por $F(\beta,t,m,M)$.
+O zero é representado à parte, com mantissa nula.
+
+Como a mantissa e o expoente têm tamanho finito:
+\begin{itemize}[nosep]
+  \item $F$ é um conjunto \emph{finito}, com $2(\beta-1)\beta^{t-1}(M+m+1)+1$ elementos;
+  \item o menor positivo é $(0{,}10\dots0)_\beta\times\beta^{-m}=\beta^{-m-1}$, e o maior é
+        $(0{,}(\beta{-}1)\dots(\beta{-}1))_\beta\times\beta^{M}=(1-\beta^{-t})\beta^{M}$;
+  \item se $0<|x|<\beta^{-m-1}$, ocorre \textbf{underflow}; se $|x|>(1-\beta^{-t})\beta^{M}$,
+        ocorre \textbf{overflow};
+  \item os números de $F$ \textbf{não são igualmente espaçados}: entre $\beta^{e-1}$ e $\beta^{e}$ o
+        espaçamento é $\beta^{e-t}$, que cresce com $e$.
+\end{itemize}
+
+\begin{exemplo}[{: $F(10,3,5,5)$}]
+Com $t=3$ dígitos decimais e $-5\le e\le5$, o menor positivo é $0{,}100\times10^{-5}=10^{-6}$ e o maior é
+$0{,}999\times10^{5}=99\,900$. Então
+$x=235{,}89=0{,}23589\times10^{3}$ fica $0{,}236\times10^3$ (arredondado) ou $0{,}235\times10^3$
+(truncado); $x=0{,}345\times10^{-7}$ dá underflow; $x=0{,}875\times10^{9}$ dá overflow.
+\end{exemplo}
+
+\begin{atividade}{o sistema $F(\beta,t,m,M)$ na reta}{\arqSisF}
+Os controles deslizantes escolhem $\beta$, $t$, $m$ e $M$; os pontos azuis do eixo são \emph{todos}
+os números do sistema. Arraste o ponto $P$: o ponto vermelho é $fl(x)$, por arredondamento ou,
+desmarcando a caixa, por truncamento. O quadro mostra a quantidade de números, o maior, o menor
+positivo, os erros absoluto e relativo e os avisos de underflow e overflow.
+
+\textbf{Tarefas.} (a) Em $F(2,3,1,2)$, confira que há 33 números, que o maior é $3{,}5$ e o menor
+positivo é $0{,}25$. (b) Amplie a região perto do zero (roda do mouse) e observe o ``buraco''
+entre $0$ e $0{,}25$. (c) Compare o espaçamento entre $0{,}5$ e $1$ com o espaçamento entre $2$ e $3{,}5$.
+(d) Mova $P$ por vários pontos e verifique que $|ER|$ nunca passa de $\tfrac12\beta^{1-t}$ com
+arredondamento, enquanto $|EA|$ cresce com $|x|$.
+\end{atividade}
+
+% ==================================================================
+\section{O padrão IEEE 754}
+
+As mais diversas representações em ponto flutuante já foram usadas. O padrão IEEE~754, criado em 1985
+e revisto em 2008 e 2019, é hoje implementado na grande maioria dos processadores. Em base 2, a
+mantissa normalizada começa sempre com o bit 1, que por isso não precisa ser guardado (\emph{bit
+escondido}). O padrão usa a forma $1{,}f$ e guarda três campos:
+\[
+\underbrace{\ s\ }_{\text{sinal}}\ \Big|\ \underbrace{\ \ E\ \ }_{\text{expoente com bias}}\ \Big|\ \underbrace{\qquad f\qquad}_{\text{fração}}
+\qquad\qquad
+x=(-1)^s\times(1{,}f)_2\times2^{E-\text{bias}} .
+\]
+
+\begin{itemize}[nosep]
+  \item $s=0$ para positivo e $s=1$ para negativo;
+  \item $E$ é um inteiro sem sinal; o expoente verdadeiro é $E-\text{bias}$, com
+        $\text{bias}=2^{k-1}-1$ para um campo de $k$ bits (assim não é preciso guardar expoentes negativos);
+  \item $f=(0{,}b_1b_2\dots b_p)_2$ é a fração; a mantissa é $1{,}f$, com $p+1$ bits de precisão.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+formato & total & expoente & fração & bias & faixa aproximada\\
+\midrule
+meia (\emph{binary16})            & 16  & 5  & 10  & 15    & $6{,}1\times10^{-5}$ a $65\,504$\\
+simples (\texttt{float})          & 32  & 8  & 23  & 127   & $1{,}2\times10^{-38}$ a $3{,}4\times10^{38}$\\
+dupla (\texttt{double})           & 64  & 11 & 52  & 1023  & $2{,}2\times10^{-308}$ a $1{,}8\times10^{308}$\\
+estendida (Intel)                 & 80  & 15 & 63  & 16383 & $3{,}4\times10^{-4932}$ a $1{,}2\times10^{4932}$\\
+quádrupla (\emph{binary128})      & 128 & 15 & 112 & 16383 & idem\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Valores especiais e números subnormais}
+
+Os valores extremos do campo $E$ são reservados:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+campo $E$ & fração $f$ & significado\\
+\midrule
+$00\dots0$ & $f=0$     & $\pm0$\\
+$00\dots0$ & $f\neq0$  & subnormal: $x=(-1)^s\times(0{,}f)_2\times2^{\,1-\text{bias}}$\\
+$1\le E\le 2^k-2$ & qualquer & normalizado: $x=(-1)^s\times(1{,}f)_2\times2^{E-\text{bias}}$\\
+$11\dots1$ & $f=0$     & $\pm\infty$ (overflow, divisão por zero)\\
+$11\dots1$ & $f\neq0$  & NaN, \emph{not a number} (por exemplo, $0/0$ ou $\sqrt{-1}$)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Os \textbf{subnormais} (ou desnormalizados) preenchem o intervalo entre $0$ e o menor normalizado
+$2^{1-\text{bias}}$ com números igualmente espaçados. O underflow fica ``gradual'', em vez de saltar
+direto para zero.
+
+\begin{exemplo}[{: $15\,213$ em precisão simples}]
+$15\,213=(11101101101101)_2=(1{,}1101101101101)_2\times2^{13}$. Então
+\begin{itemize}[nosep]
+  \item $s=0$;
+  \item $E=13+127=140=(10001100)_2$;
+  \item $f=\bits{11011011011010000000000}$ (os 13 bits depois da vírgula, completados com zeros até 23).
+\end{itemize}
+A palavra é \bits{0\,10001100\,11011011011010000000000}, ou $466DB400_{16}$.
+\end{exemplo}
+
+\begin{exemplo}[{: $178{,}125$ em precisão dupla}]
+$178{,}125=128+32+16+2+0{,}125=(10110010{,}001)_2=(1{,}0110010001)_2\times2^{7}$. Então
+$s=0$, $E=7+1023=1030=(10000000110)_2$ e $f=\bits{0110010001}0\dots0$ (52 bits).
+A palavra é $4066440000000000_{16}$.
+\end{exemplo}
+
+\begin{exemplo}[{: $0{,}2$ em todos os formatos (as planilhas das máquinas)}]
+$0{,}2=(0{,}0\overline{0011})_2=(1{,}\overline{1001})_2\times2^{-3}$. O expoente é $-3$ e a fração
+$1001\,1001\,1001\dots$ precisa ser cortada. Arredondando para o mais próximo:
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+formato & palavra (hex) & valor guardado & erro relativo\\
+\midrule
+8 bits (bias 3)   & $0D$          & $0{,}203125$ & $-1{,}6\times10^{-2}$\\
+16 bits           & $3266$        & $0{,}199951171875$ & $\phantom{-}2{,}4\times10^{-4}$\\
+32 bits           & $3E4CCCCD$    & $0{,}20000000298023224$ & $-1{,}5\times10^{-8}$\\
+64 bits           & $3FC999999999999A$ & $0{,}20000000000000001110$ & $-5{,}6\times10^{-17}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Na máquina de 8 bits, o expoente $-3$ é menor que o mínimo $1-3=-2$, e $0{,}2$ cai na faixa
+subnormal: $0{,}2\approx(0{,}1101)_2\times2^{-2}=13/64$. Nas planilhas de Excel o campo $E=0$ era tratado
+como normalizado. No padrão IEEE (e nos aplicativos) ele é reservado para o zero e os subnormais.
+\end{exemplo}
+
+
+
+% ==================================================================
+\section{As máquinas de 8, 16, 32 e 64 bits}
+
+As planilhas usadas em aula montavam um número bit a bit e calculavam
+$(-1)^s(1+\text{fração})\,2^{E-\text{bias}}$. Os aplicativos a seguir fazem o mesmo e mais:
+\begin{itemize}[nosep]
+  \item cada bit é uma caixa de seleção (marcada $=1$), agrupada em sinal, expoente e fração, com o
+        peso de cada bit indicado acima da caixa;
+  \item a palavra aparece em binário e em hexadecimal;
+  \item a \emph{decodificação} mostra $s$, $E$, $E-\text{bias}$, a fração, o tipo do número (zero,
+        subnormal, normalizado, infinito ou NaN), o valor com 15 algarismos significativos e o
+        espaçamento local (ulp, \emph{unit in the last place});
+  \item na \emph{codificação}, você digita o número exato e escolhe \textbf{arredondamento} (para o mais
+        próximo, empate para o par, como no padrão) ou \textbf{truncamento} (corte, em direção ao zero).
+        O aplicativo marca os bits e calcula os erros absoluto e relativo;
+  \item o quadro \emph{Faixa} mostra o maior número, o menor normalizado e o menor subnormal.
+\end{itemize}
+
+\subsection{A máquina de 8 bits}
+
+O formato didático de 8 bits de W.~T.~Verts tem 1 bit de sinal, 3 de expoente
+($\text{bias}=3$) e 4 de fração. Ele segue todas as regras do IEEE~754 e é pequeno o bastante para
+listar os seus 256 padrões:
+\begin{itemize}[nosep]
+  \item $E=0$: zero e subnormais $(0{,}f)_2\times2^{-2}$, de $1/64=0{,}015625$ a $15/64$, com passo $1/64$;
+  \item $1\le E\le6$: normalizados $(1{,}f)_2\times2^{E-3}$, de $0{,}25$ a $(1{,}1111)_2\times2^3=15{,}5$;
+  \item $E=7$: $\pm\infty$ e NaN.
+\end{itemize}
+São $2\times(16+6\times16)=224$ padrões finitos (com $+0$ e $-0$). Entre $1$ e $2$ o passo é $1/16$;
+entre $8$ e $15{,}5$ é $1/2$.
+
+\begin{center}
+\small
+\begin{tabular}{cccl}
+\toprule
+$E$ & expoente & intervalo & passo\\
+\midrule
+0 (sub.) & $-2$ & $[0,\ 0{,}234375]$ & $1/64$\\
+1 & $-2$ & $[0{,}25,\ 0{,}484375]$ & $1/64$\\
+2 & $-1$ & $[0{,}5,\ 0{,}96875]$ & $1/32$\\
+3 & $\phantom{-}0$ & $[1,\ 1{,}9375]$ & $1/16$\\
+4 & $\phantom{-}1$ & $[2,\ 3{,}875]$ & $1/8$\\
+5 & $\phantom{-}2$ & $[4,\ 7{,}75]$ & $1/4$\\
+6 & $\phantom{-}3$ & $[8,\ 15{,}5]$ & $1/2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{atividade}{máquina de 8 bits}{\arqMoito}
+O aplicativo abre com $0{,}2$ arredondado: \bits{0 000 1101}, um subnormal que vale $0{,}203125$.
+
+\textbf{Tarefas.} (a) Clique no bit de expoente de peso $2^0$ e veja o número passar a
+$(1{,}1101)_2\times2^{-2}=0{,}453125$. (b) Monte o maior número ($15{,}5$), o menor normalizado ($0{,}25$),
+o menor subnormal ($1/64$), $+\infty$ e um NaN. (c) Digite $x=2{,}7$ e codifique por arredondamento e por
+truncamento: os resultados são $2{,}75$ e $2{,}625$. (d) Codifique $15{,}75$ por arredondamento (overflow,
+$+\infty$) e por truncamento (fica o maior finito, $15{,}5$). (e) Codifique $0{,}007$, que é menor que
+metade do menor subnormal: o resultado é zero (underflow).
+\end{atividade}
+
+
+
+\subsection{As máquinas de 16, 32 e 64 bits}
+
+\begin{atividade}{máquina de 16 bits (meia precisão)}{\arqMdezesseis}
+Formato $1+5+10$, $\text{bias}=15$. O aplicativo abre com $0{,}2$ arredondado
+($3266_{16}$, $0{,}199951171875$).
+
+\textbf{Tarefas.} (a) Monte $1$, $2$, $-1{,}5$ e o maior número finito ($65\,504$). (b) Codifique
+$65\,519$ e $65\,520$ por arredondamento: o primeiro vira $65\,504$ e o segundo, $+\infty$.
+(c) Codifique $2049$: o resultado é $2048$, porque com 11 bits de mantissa os inteiros acima de
+$2^{11}$ não são todos representáveis. (d) Compare o erro relativo de $0{,}2$ com $\varepsilon_{\text{máq}}=2^{-10}$.
+\end{atividade}
+
+\begin{atividade}{máquina de 32 bits (precisão simples)}{\arqMtrintadois}
+Formato $1+8+23$, $\text{bias}=127$, o \texttt{float} das linguagens de programação.
+
+\textbf{Tarefas.} (a) Codifique $15\,213$ e confira a palavra $466DB400_{16}$. (b) Codifique $0{,}1$ e
+$0{,}2$ e anote os erros relativos; compare com $2^{-24}\approx5{,}96\times10^{-8}$.
+(c) Codifique $16\,777\,217=2^{24}+1$ e explique o resultado. (d) Codifique $10^{-40}$: o número é
+subnormal e o erro relativo cresce, porque sobram menos bits significativos.
+\end{atividade}
+
+\begin{atividade}{máquina de 64 bits (precisão dupla)}{\arqMsessentaquatro}
+Formato $1+11+52$, $\text{bias}=1023$, o \texttt{double}. Os 52 bits da fração estão em duas linhas
+(use as barras de rolagem se a tela for pequena). Em hexadecimal, a palavra tem 16 dígitos e a fração 13.
+
+\textbf{Tarefas.} (a) Codifique $178{,}125$ e confira $4066440000000000_{16}$. (b) Codifique $0{,}1$:
+a fração é $999999999999A_{16}$; o último dígito ``A'' (em vez de 9) vem do arredondamento para cima.
+(c) Compare a palavra de $0{,}1$ com a de $0{,}2$: só muda o expoente. Por quê?
+(d) O GeoGebra calcula em precisão dupla, então o número digitado já entra como \texttt{double}: aqui o
+erro aparece como $0$. Use o ulp e $\varepsilon_{\text{máq}}=2^{-52}$ para estimar o erro, ou faça a mesma conta na
+máquina de 32 bits.
+\end{atividade}
+
+% ==================================================================
+\section{Arredondamento e truncamento}
+
+Considere um sistema que opera em aritmética de ponto flutuante de $t$ dígitos na base 10, e escreva
+\[
+x=f_x\times10^{e}+g_x\times10^{e-t},\qquad 0{,}1\le f_x<1,\quad 0\le g_x<1 .
+\]
+Por exemplo, com $t=4$ e $x=234{,}57$: $x=0{,}2345\times10^{3}+0{,}7\times10^{-1}$, logo $f_x=0{,}2345$ e $g_x=0{,}7$.
+A parcela $g_x\times10^{e-t}$ não cabe na mantissa. Há dois critérios:
+
+\begin{description}[nosep]
+  \item[Truncamento:] $g_x$ é desprezado e $\bar x=f_x\times10^{e}$. Então
+  \[
+  |EA_x|=|g_x|\times10^{e-t}<10^{e-t},\qquad
+  |ER_x|=\frac{|g_x|\times10^{e-t}}{|f_x|\times10^{e}}<\frac{10^{e-t}}{0{,}1\times10^{e}}=10^{-t+1} .
+  \]
+  \item[Arredondamento:] se $|g_x|<\tfrac12$, despreza-se $g_x$; caso contrário, soma-se 1 ao último dígito de
+  $f_x$. Então
+  \[
+  |EA_x|\le\tfrac12\times10^{e-t},\qquad |ER_x|<\tfrac12\times10^{-t+1} .
+  \]
+\end{description}
+
+O arredondamento comete erros menores, mas exige mais operações; por isso algumas máquinas antigas
+truncavam. O IEEE~754 adota como padrão o \textbf{arredondamento para o mais próximo, com empate para o
+par} (o último bit fica 0). Ele também oferece arredondamento em direção a $0$ (truncamento), a $+\infty$ e a
+$-\infty$, úteis na análise por intervalos.
+
+Na base 2 com $p$ bits de fração, os mesmos argumentos dão o \textbf{épsilon da máquina}
+$\varepsilon_{\text{máq}}=2^{-p}$, a distância de $1$ ao número seguinte da máquina, e
+\[
+\frac{|x-fl(x)|}{|x|}\le\tfrac12\varepsilon_{\text{máq}}=2^{-(p+1)}\ \ \text{(arredondamento)},
+\qquad
+\frac{|x-fl(x)|}{|x|}<\varepsilon_{\text{máq}}\ \ \text{(truncamento)},
+\]
+para $x$ na faixa dos normalizados. Em precisão dupla, $\varepsilon_{\text{máq}}=2^{-52}\approx2{,}2\times10^{-16}$,
+ou seja, cerca de 16 algarismos decimais significativos. Em precisão simples,
+$\varepsilon_{\text{máq}}=2^{-23}\approx1{,}2\times10^{-7}$, cerca de 7 algarismos.
+
+% ==================================================================
+\section{Erros absoluto e relativo}
+
+\begin{definicao}
+Seja $\bar x$ uma aproximação de $x$. O \emph{erro absoluto} é $EA_x=x-\bar x$ e o \emph{erro relativo} é
+\[
+ER_x=\frac{EA_x}{\bar x}=\frac{x-\bar x}{\bar x}
+\]
+(na prática, divide-se pelo valor aproximado, que é o conhecido; quando $x$ é conhecido, como nos aplicativos,
+pode-se dividir por $x$).
+\end{definicao}
+
+Em geral só $\bar x$ é conhecido, e o que se obtém é um limitante do erro. Se
+$\pi\in(3{,}14;\,3{,}15)$ e tomamos $\bar\pi$ nesse intervalo, então $|EA_\pi|<0{,}01$.
+
+\begin{exemplo}[{: o erro relativo compara melhor}]
+Seja $\bar x=2112{,}9$ com $|EA_x|<0{,}1$, isto é, $x\in(2112{,}8;\,2113)$, e $\bar y=5{,}3$ com
+$|EA_y|<0{,}1$, isto é, $y\in(5{,}2;\,5{,}4)$. Os erros absolutos têm o mesmo limitante, mas
+\[
+|ER_x|<\frac{0{,}1}{2112{,}9}\approx4{,}7\times10^{-5},\qquad |ER_y|<\frac{0{,}1}{5{,}3}\approx0{,}02 .
+\]
+O número $x$ está representado com precisão muito maior que $y$.
+\end{exemplo}
+
+% ==================================================================
+\section{Operações em ponto flutuante e propagação de erros}
+
+Mesmo quando as parcelas são exatas, o resultado de uma operação precisa ser normalizado e arredondado (ou
+truncado) para $t$ dígitos. O resultado aproximado $\overline{OP}$ é o que fica na memória.
+
+\begin{exemplo}[{: adição e multiplicação com $t=4$}]
+Sejam $x=0{,}937\times10^{4}$ e $y=0{,}1272\times10^{2}$.
+
+\textbf{Adição.} É preciso alinhar as vírgulas: a mantissa do número de menor expoente é deslocada para a
+direita tantas casas quanto a diferença dos expoentes:
+\[
+x+y=(0{,}937+0{,}001272)\times10^{4}=0{,}938272\times10^{4} .
+\]
+Com $t=4$: $\overline{x+y}=0{,}9383\times10^{4}$ (arredondamento) ou $0{,}9382\times10^{4}$ (truncamento).
+
+\textbf{Multiplicação.}
+$xy=(0{,}937\times0{,}1272)\times10^{6}=0{,}1191864\times10^{6}$, logo
+$\overline{xy}=0{,}1192\times10^{6}$ (arredondamento) ou $0{,}1191\times10^{6}$ (truncamento).
+\end{exemplo}
+
+Supondo as parcelas representadas exatamente, o erro relativo de uma operação é
+$|ER_{OP}|<10^{-t+1}$ no truncamento e $|ER_{OP}|<\tfrac12\times10^{-t+1}$ no arredondamento.
+
+\subsection{Fórmulas de propagação}
+
+Sejam $x=\bar x+EA_x$ e $y=\bar y+EA_y$. Desprezando os produtos de erros, que são muito pequenos:
+
+\begin{center}
+\renewcommand{\arraystretch}{2}
+\begin{tabular}{lll}
+\toprule
+operação & erro absoluto & erro relativo\\
+\midrule
+$x+y$ & $EA_{x+y}=EA_x+EA_y$ & $ER_{x+y}=ER_x\dfrac{\bar x}{\bar x+\bar y}+ER_y\dfrac{\bar y}{\bar x+\bar y}$\\
+$x-y$ & $EA_{x-y}=EA_x-EA_y$ & $ER_{x-y}=ER_x\dfrac{\bar x}{\bar x-\bar y}-ER_y\dfrac{\bar y}{\bar x-\bar y}$\\
+$xy$  & $EA_{xy}\approx\bar x\,EA_y+\bar y\,EA_x$ & $ER_{xy}\approx ER_x+ER_y$\\
+$x/y$ & $EA_{x/y}\approx\dfrac{\bar y\,EA_x-\bar x\,EA_y}{\bar y^{\,2}}$ & $ER_{x/y}\approx ER_x-ER_y$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Na divisão, usa-se $\dfrac1{1+EA_y/\bar y}=1-\dfrac{EA_y}{\bar y}+\Big(\dfrac{EA_y}{\bar y}\Big)^2-\cdots$ e
+desprezam-se as potências maiores que 1. A cada operação soma-se ainda o erro de arredondamento do próprio
+resultado, limitado por $\tfrac12\varepsilon_{\text{máq}}$.
+
+\subsection{Cancelamento}
+
+Na subtração, os fatores $\bar x/(\bar x-\bar y)$ e $\bar y/(\bar x-\bar y)$ ficam enormes quando
+$\bar x\approx\bar y$. Os algarismos iniciais iguais se cancelam e sobram os finais, justamente os
+contaminados por erro. É o \textbf{cancelamento}.
+
+\begin{exemplo}[{: reescrever para evitar o cancelamento}]
+Com $t=6$ dígitos decimais, calcule $\sqrt{x+1}-\sqrt{x}$ para $x=10^{8}$:
+$\sqrt{100\,000\,001}=10\,000{,}000\,05\approx0{,}100000\times10^{5}$ e $\sqrt{10^8}=0{,}100000\times10^{5}$, cuja
+diferença é $0$. Racionalizando,
+\[
+\sqrt{x+1}-\sqrt{x}=\frac{1}{\sqrt{x+1}+\sqrt{x}}\approx\frac1{0{,}200000\times10^{5}}=0{,}500000\times10^{-4},
+\]
+que é o valor correto ($4{,}9999999875\times10^{-5}$) com 6 algarismos.
+\end{exemplo}
+
+\begin{exemplo}[{: derivada numérica de $\sin x$ em $x=1$}]
+A derivada é aproximada por $\dfrac{\sin(1+h)-\sin 1}{h}$; o valor exato é $\cos1\approx0{,}5403023$. Em precisão dupla:
+
+\begin{center}
+\small
+\begin{tabular}{ccc}
+\toprule
+$h$ & aproximação & erro\\
+\midrule
+$10^{-1}$  & $0{,}4973637525$ & $4{,}3\times10^{-2}$\\
+$10^{-4}$  & $0{,}5402602314$ & $4{,}2\times10^{-5}$\\
+$10^{-8}$  & $0{,}5403023029$ & $3{,}0\times10^{-9}$\\
+$10^{-12}$ & $0{,}5403455461$ & $4{,}3\times10^{-5}$\\
+$10^{-15}$ & $0{,}5551115123$ & $1{,}5\times10^{-2}$\\
+$10^{-16}$ & $0$ & $5{,}4\times10^{-1}$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Até $h\approx10^{-8}\approx\sqrt{\varepsilon_{\text{máq}}}$, o erro cai junto com $h$ (erro de truncamento da
+fórmula). Depois, $\sin(1+h)$ e $\sin1$ ficam tão próximos que o cancelamento domina. Com
+$h=10^{-16}$, $1+h$ é arredondado para $1$ e a diferença é zero. A diferença central
+$\frac{\sin(1+h)-\sin(1-h)}{2h}$ atinge erro de $10^{-11}$ com $h\approx10^{-5}$.
+\end{exemplo}
+
+\begin{observacao}
+Outros cuidados que vêm da aritmética finita:
+\begin{itemize}[nosep]
+  \item a adição não é associativa: $(x+y)+z$ pode ser diferente de $x+(y+z)$;
+  \item somar um número muito pequeno a um muito grande pode não mudar nada: em precisão dupla,
+        $1+2^{-53}=1$;
+  \item não teste igualdade de números reais (\texttt{if x == 0.3}); use uma tolerância,
+        $|x-0{,}3|<\varepsilon$. Em Python, \texttt{0.1 + 0.2} mostra \texttt{0.30000000000000004}.
+\end{itemize}
+\end{observacao}
+
+
+
+% ==================================================================
+\section{Exercícios}
+
+\begin{enumerate}[label=\arabic*.]
+  \item Converta para a base 10: (a) $(101101)_2$; (b) $(0{,}1011)_2$; (c) $(157)_8$; (d) $(3A{,}8)_{16}$.
+  \item Converta $45{,}625$ para as bases 2, 8 e 16.
+  \item Mostre que $0{,}1=(0{,}0\overline{0011})_2$. Quantos bits seriam necessários para guardar
+        $0{,}1$ exatamente?
+  \item Represente $13{,}25$ em precisão simples (32 bits) e dê a palavra em hexadecimal.
+  \item Decodifique a palavra de 32 bits \bits{0 10000001 01000000000000000000000}.
+  \item Na máquina de 8 bits ($1+3+4$, bias 3), decodifique:
+        (a) \bits{0 101 0110}; (b) \bits{1 001 1000}; (c) \bits{0 000 0011}; (d) \bits{0 111 0000}.
+  \item Na máquina de 8 bits, codifique $x=2{,}7$ por arredondamento e por truncamento e calcule os erros
+        absoluto e relativo.
+  \item Em $F(2,3,1,2)$, quantos números existem? Qual o maior e qual o menor positivo?
+  \item Com $t=4$ e arredondamento, calcule $(x+y)-x$ para $x=0{,}3491\times10^{4}$ e $y=0{,}2345\times10^{0}$.
+        Compare com $y$.
+  \item Explique por que, em precisão dupla, $1+2^{-53}=1$, mas $1+2^{-52}\neq1$.
+  \item Calcule $\sqrt{x+1}-\sqrt{x}$ para $x=10^8$ com $t=6$ dígitos, diretamente e após racionalizar.
+\end{enumerate}
+
+\subsection*{Respostas}
+\begin{enumerate}[label=\arabic*.,nosep]
+  \item (a) $45$; (b) $0{,}6875$; (c) $111$; (d) $58{,}5$.
+  \item $(101101{,}101)_2=(55{,}5)_8=(2D{,}A)_{16}$.
+  \item As multiplicações dão a sequência $0{,}2\to0{,}4\to0{,}8\to0{,}6\to0{,}2$, que se repete. Nenhuma
+        quantidade finita de bits basta.
+  \item $13{,}25=(1101{,}01)_2=(1{,}10101)_2\times2^3$: $s=0$, $E=130=(10000010)_2$,
+        $f=\bits{10101}0\dots0$; palavra $41540000_{16}$.
+  \item $(1{,}01)_2\times2^{129-127}=1{,}25\times4=5$.
+  \item (a) $(1{,}0110)_2\times2^{2}=5{,}5$; (b) $-(1{,}1)_2\times2^{-2}=-0{,}375$; (c) subnormal
+        $3/64=0{,}046875$; (d) $+\infty$.
+  \item $2{,}7=(1{,}0101\,1001\dots)_2\times2^1$. Arredondamento: \bits{0 100 0110}$=2{,}75$, $EA=-0{,}05$,
+        $ER\approx-1{,}85\times10^{-2}$. Truncamento: \bits{0 100 0101}$=2{,}625$, $EA=0{,}075$, $ER\approx2{,}78\times10^{-2}$.
+  \item $2\cdot1\cdot4\cdot4+1=33$ números; maior $(0{,}111)_2\times2^2=3{,}5$; menor positivo $(0{,}100)_2\times2^{-1}=0{,}25$.
+  \item $x+y=3491{,}2345\to0{,}3491\times10^{4}$, logo $(x+y)-x=0$, embora $y\neq0$: o $y$ foi ``absorvido''.
+  \item O número seguinte a $1$ em precisão dupla é $1+2^{-52}$. O valor $1+2^{-53}$ está exatamente no meio e,
+        pelo empate para o par, é arredondado para $1$.
+  \item Diretamente: $0$. Racionalizando: $0{,}500000\times10^{-4}$ (exato: $4{,}9999999875\times10^{-5}$).
+\end{enumerate}
+
+\subsection*{Referências}
+\begin{itemize}[nosep]
+  \item M.~A.~G.~Ruggiero e V.~L.~R.~Lopes, \emph{Cálculo Numérico: aspectos teóricos e computacionais}, 2.ª ed., Makron Books.
+  \item M.~L.~Overton, \emph{Numerical Computing with IEEE Floating Point Arithmetic}, SIAM, 2001.
+  \item IEEE Std 754-2019, \emph{IEEE Standard for Floating-Point Arithmetic}.
+\end{itemize}

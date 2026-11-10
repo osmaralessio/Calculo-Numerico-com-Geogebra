@@ -1,0 +1,213 @@
+[
+ {
+  "numero": 1,
+  "id": "ponto_flutuante",
+  "titulo": "Mudança de base e aritmética de ponto flutuante",
+  "secoes": [
+   [
+    "1.1",
+    "Por que estudar a representação dos números"
+   ],
+   [
+    "1.2",
+    "Sistemas de numeração posicionais"
+   ],
+   [
+    "1.3",
+    "Da base $\\beta$ para a base 10"
+   ],
+   [
+    "1.4",
+    "Da base 10 para a base $\\beta$"
+   ],
+   [
+    "1.5",
+    "Representação em ponto flutuante"
+   ],
+   [
+    "1.6",
+    "O padrão IEEE 754"
+   ],
+   [
+    "1.7",
+    "As máquinas de 8, 16, 32 e 64 bits"
+   ],
+   [
+    "1.8",
+    "Arredondamento e truncamento"
+   ],
+   [
+    "1.9",
+    "Erros absoluto e relativo"
+   ],
+   [
+    "1.10",
+    "Operações em ponto flutuante e propagação de erros"
+   ],
+   [
+    "1.11",
+    "Exercícios"
+   ]
+  ]
+ },
+ {
+  "numero": 2,
+  "id": "zeros_de_funcoes",
+  "titulo": "Zeros de funções",
+  "secoes": [
+   [
+    "2.1",
+    "O problema"
+   ],
+   [
+    "2.2",
+    "Isolamento das raízes"
+   ],
+   [
+    "2.3",
+    "Critérios de parada e laços de repetição"
+   ],
+   [
+    "2.4",
+    "Método da bisseção"
+   ],
+   [
+    "2.5",
+    "Método da posição falsa"
+   ],
+   [
+    "2.6",
+    "Método do ponto fixo"
+   ],
+   [
+    "2.7",
+    "Método de Newton-Raphson"
+   ],
+   [
+    "2.8",
+    "Método da secante"
+   ],
+   [
+    "2.9",
+    "Comparação dos métodos"
+   ],
+   [
+    "2.10",
+    "Exercícios"
+   ]
+  ]
+ },
+ {
+  "numero": 3,
+  "id": "sistemas_lineares",
+  "titulo": "Sistemas lineares: métodos diretos e iterativos",
+  "secoes": [
+   [
+    "3.1",
+    "Introdução"
+   ],
+   [
+    "3.2",
+    "Sistemas triangulares"
+   ],
+   [
+    "3.3",
+    "Eliminação de Gauss"
+   ],
+   [
+    "3.4",
+    "Fatoração LU"
+   ],
+   [
+    "3.5",
+    "Custo computacional dos métodos diretos"
+   ],
+   [
+    "3.6",
+    "Métodos iterativos: a ideia"
+   ],
+   [
+    "3.7",
+    "Método de Gauss-Jacobi"
+   ],
+   [
+    "3.8",
+    "Método de Gauss-Seidel"
+   ],
+   [
+    "3.9",
+    "Métodos diretos ou iterativos?"
+   ],
+   [
+    "3.10",
+    "Exercícios"
+   ]
+  ]
+ },
+ {
+  "numero": 4,
+  "id": "interpolacao",
+  "titulo": "Interpolação polinomial",
+  "secoes": [
+   [
+    "4.1",
+    "O problema da interpolação"
+   ],
+   [
+    "4.2",
+    "Existência e unicidade"
+   ],
+   [
+    "4.3",
+    "Método 1: sistema linear e eliminação de Gauss"
+   ],
+   [
+    "4.4",
+    "Método 2: forma de Lagrange"
+   ],
+   [
+    "4.5",
+    "Método 3: forma de Newton e diferenças divididas"
+   ],
+   [
+    "4.6",
+    "Comparação dos três métodos"
+   ],
+   [
+    "4.7",
+    "O erro da interpolação"
+   ],
+   [
+    "4.8",
+    "Exercícios"
+   ]
+  ]
+ },
+ {
+  "numero": 5,
+  "id": "ajuste_de_curvas",
+  "titulo": "Ajuste de curvas: método dos mínimos quadrados e gradiente descendente",
+  "secoes": [
+   [
+    "5.1",
+    "Interpolar ou ajustar?"
+   ],
+   [
+    "5.2",
+    "O método dos mínimos quadrados (caso discreto)"
+   ],
+   [
+    "5.3",
+    "O método iterativo: gradiente descendente"
+   ],
+   [
+    "5.4",
+    "Método direto $\\times$ método iterativo"
+   ],
+   [
+    "5.5",
+    "Exercícios"
+   ]
+  ]
+ }
+]

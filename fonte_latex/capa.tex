@@ -1,0 +1,64 @@
+% ==================================================================
+% Capa
+% ==================================================================
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{tikzpicture}[remember picture,overlay]
+  % fundo
+  \shade[top color=azulescuro,bottom color=azul] (current page.north west) rectangle (current page.south east);
+  % malha sutil
+  \begin{scope}[shift={(current page.center)}]
+    \draw[white,opacity=0.07,step=0.8cm] (-11,-15) grid (11,15);
+  \end{scope}
+  % faixa superior
+  \fill[laranja] ([yshift=-1.1cm]current page.north west) rectangle ([yshift=-1.25cm]current page.north east);
+  \node[anchor=north west,text=white,font=\sffamily\large] at ([xshift=2cm,yshift=-1.6cm]current page.north west)
+    {\textsc{\livroinstituicao}};
+  \node[anchor=north west,text=white!80,font=\sffamily] at ([xshift=2cm,yshift=-2.3cm]current page.north west)
+    {\livrocurso};
+  % título
+  \node[anchor=north west,text=white,font=\sffamily\bfseries\fontsize{50}{56}\selectfont,align=left]
+    at ([xshift=2cm,yshift=-4.2cm]current page.north west) {Cálculo\\Numérico\\Interativo};
+  \node[anchor=north west,text=orange!60!yellow,font=\sffamily\Large,align=left]
+    at ([xshift=2cm,yshift=-11.6cm]current page.north west) {\livrosubtitulo};
+  % gráfico: polinômio interpolador, tangente de Newton e bisseção
+  \begin{scope}[shift={([xshift=11.8cm,yshift=-19.6cm]current page.north west)},x=0.55cm,y=0.55cm]
+    \draw[white,opacity=0.5,-{Stealth}] (-6,0)--(10.3,0);
+    \draw[white,opacity=0.5,-{Stealth}] (0,-5.3)--(0,7.3);
+    \draw[orange!70!yellow,line width=2.2pt,domain=-5.1:9.2,samples=120,smooth]
+      plot (\x,{-9/5+97/120*\x+43/160*\x*\x-41/960*\x*\x*\x});
+    \draw[white,line width=1pt,opacity=0.85] (5.3,{-9/5+97/120*5.3+43/160*5.3^2-41/960*5.3^3}) ++(-3.2,{-3.2*(97/120+43/80*5.3-41/320*5.3^2)}) -- ++(6.4,{6.4*(97/120+43/80*5.3-41/320*5.3^2)});
+    \foreach \p/\q in {-4/2,-2/-2,4/3,8/0} \fill[white] (\p,\q) circle (4.5pt);
+    \foreach \p/\q in {-4/2,-2/-2,4/3,8/0} \fill[azul] (\p,\q) circle (2.3pt);
+    \draw[cyan!60,line width=1.4pt,|-|] (6.4,-1.0)--(9.6,-1.0);
+    \draw[cyan!60,line width=1.4pt,|-|] (6.4,-1.8)--(8.0,-1.8);
+    \draw[cyan!60,line width=1.4pt,|-|] (7.2,-2.6)--(8.0,-2.6);
+  \end{scope}
+  % matriz aumentada estilizada
+  \node[text=white,opacity=0.6,font=\sffamily] at ([xshift=4.4cm,yshift=-23.2cm]current page.north west)
+    {$\left(\begin{array}{rrrr|r}1&-4&16&-64&2\\0&2&-12&56&-4\\0&0&48&-96&17\\0&0&0&480&-\frac{41}{2}\end{array}\right)$};
+  % rodapé
+  \fill[white,opacity=0.08] ([yshift=4.2cm]current page.south west) rectangle (current page.south east);
+  \node[anchor=south west,text=white,font=\sffamily\LARGE\bfseries] at ([xshift=2cm,yshift=2.4cm]current page.south west) {\livroautor};
+  \node[anchor=south west,text=white!80,font=\sffamily\large] at ([xshift=2cm,yshift=1.4cm]current page.south west) {\livrolocal\quad\textbullet\quad\livroano};
+  \node[anchor=south east,text=white,font=\sffamily\small,align=right] at ([xshift=-2cm,yshift=1.5cm]current page.south east)
+    {Livro com aplicativos interativos:\\clique nos links para abrir no GeoGebra};
+\end{tikzpicture}
+\end{titlepage}
+
+% ==================================================================
+% Folha de rosto
+% ==================================================================
+\begin{titlepage}
+\centering
+{\large\textsc{\livroinstituicao}\par}
+{\livrocurso\par}
+\vspace{5cm}
+{\sffamily\bfseries\Huge\color{azul}\livrotitulo\par}
+\vspace{0.8cm}
+{\Large \livrosubtitulo\par}
+\vspace{3cm}
+{\Large\bfseries \livroautor\par}
+\vfill
+{\large \livrolocal\par \livroano\par}
+\end{titlepage}

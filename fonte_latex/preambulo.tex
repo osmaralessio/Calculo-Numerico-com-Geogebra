@@ -1,0 +1,96 @@
+% ==================================================================
+% Preâmbulo comum a todos os capítulos
+% ==================================================================
+\usepackage{fix-cm}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\babelprovide[import,main]{brazilian}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{microtype}
+\usepackage{anyfontsize}
+\usepackage{enumitem}
+\usepackage{booktabs,array}
+\usepackage{xcolor}
+\usepackage{pifont}
+\usepackage{listings}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fadings}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=azul,urlcolor=laranja,citecolor=azul,filecolor=laranja,
+  bookmarksnumbered=true,pdftitle={Cálculo Numérico Interativo},pdfauthor={Osmar Alessio}]{hyperref}
+
+\definecolor{azul}{RGB}{20,60,150}
+\definecolor{azulescuro}{RGB}{10,30,80}
+\definecolor{laranja}{RGB}{200,90,0}
+\definecolor{verde}{RGB}{0,120,60}
+\definecolor{vermelho}{RGB}{200,30,30}
+\definecolor{cL1}{RGB}{31,99,180}
+\definecolor{cL2}{RGB}{27,138,59}
+\definecolor{cL3}{RGB}{230,126,34}
+\definecolor{cL4}{RGB}{148,103,189}
+
+\sloppy
+\setlength{\parskip}{0.4em}
+\renewcommand{\arraystretch}{1.15}
+
+\lstset{basicstyle=\ttfamily\small,keywordstyle=\color{azul}\bfseries,commentstyle=\color{gray},
+  stringstyle=\color{verde},frame=single,rulecolor=\color{gray!50},backgroundcolor=\color{gray!4},
+  columns=fullflexible,keepspaces=true,showstringspaces=false,breaklines=true}
+
+% ------------------------------------------------------------------
+% Links para os aplicativos do GeoGebra e para os textos complementares.
+% Opção 1 (padrão): arquivos .ggb na pasta ggb/ e PDFs na pasta complementos/,
+% ao lado do PDF do livro.
+% Opção 2: depois de publicar os arquivos no geogebra.org, troque
+% \ggbabrir por \ggbonline e informe o endereço de cada material.
+% Os nomes dos arquivos de cada capítulo (\arq...) são definidos no início
+% de cada arquivo da pasta capitulos/.
+% ------------------------------------------------------------------
+\newcommand{\ggbpasta}{ggb/}
+\newcommand{\ggbabrir}[2]{\href{run:\ggbpasta #1}{#2}}
+\newcommand{\ggbonline}[2]{\href{#1}{#2}}
+\newcommand{\pdfabrir}[2]{\href{complementos/#1}{#2}}
+\newcommand{\arqtxt}[1]{\texttt{\expandafter\detokenize\expandafter{#1}}}
+
+\newtcolorbox{atividade}[2]{enhanced,breakable,colback=orange!6,colframe=laranja,
+  fonttitle=\bfseries,coltitle=white,
+  title={Atividade no GeoGebra: #1\hfill\ggbabrir{#2}{\textcolor{white}{[abrir o aplicativo]}}},
+  after upper={\par\smallskip\small\textbf{Arquivo:}\\ \ggbabrir{#2}{\texttt{ggb/\arqtxt{#2}}}}}
+
+\newtcolorbox{leitura}[2]{enhanced,breakable,colback=teal!4,colframe=teal!70!black,
+  fonttitle=\bfseries,coltitle=white,
+  title={Leitura complementar: #1\hfill\pdfabrir{#2}{\textcolor{white}{[abrir o texto]}}},
+  after upper={\par\smallskip\small\textbf{Arquivo:} \pdfabrir{#2}{\texttt{complementos/\arqtxt{#2}}}}}
+
+\newtcolorbox{exemplo}[1][]{enhanced,breakable,colback=blue!3,colframe=azul!70,
+  fonttitle=\bfseries,title={Exemplo#1}}
+
+\newtcolorbox{observacao}{enhanced,breakable,colback=green!4,colframe=verde!70,
+  fonttitle=\bfseries,title={Observação}}
+
+\theoremstyle{definition}
+\newtheorem{definicao}{Definição}[chapter]
+\theoremstyle{plain}
+\newtheorem{teorema}[definicao]{Teorema}
+\newtheorem{proposicao}[definicao]{Proposição}
+\newtheorem{corolario}[definicao]{Corolário}
+
+\tcolorboxenvironment{teorema}{colback=azul!4,colframe=azul,boxrule=0.6pt,arc=1mm,breakable}
+\tcolorboxenvironment{proposicao}{colback=azul!4,colframe=azul,boxrule=0.6pt,arc=1mm,breakable}
+\tcolorboxenvironment{definicao}{colback=gray!5,colframe=gray!60,boxrule=0.6pt,arc=1mm,breakable}
+
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\y}{\mathbf{y}}
+
+% Dados do livro (edite aqui)
+\newcommand{\livrotitulo}{Cálculo Numérico Interativo}
+\newcommand{\livrosubtitulo}{Sistemas lineares, zeros de funções e interpolação\\com aplicativos no GeoGebra}
+\newcommand{\livroautor}{Osmar Alessio}
+\newcommand{\livroinstituicao}{Universidade Federal do Triângulo Mineiro}
+\newcommand{\livrocurso}{Licenciatura em Matemática -- ICENE}
+\newcommand{\livrolocal}{Uberaba -- MG}
+\newcommand{\livroano}{2026}
