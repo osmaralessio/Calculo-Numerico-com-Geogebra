@@ -12,7 +12,7 @@ with c1:
 with c2:
     st.title("Cálculo Numérico Interativo")
     st.markdown(
-        "##### Sistemas lineares, zeros de funções e interpolação com aplicativos no GeoGebra\n\n"
+        "##### Aritmética de ponto flutuante, zeros de funções, sistemas lineares, interpolação e ajuste de curvas com aplicativos no GeoGebra\n\n"
         "**Osmar Alessio**  \nUniversidade Federal do Triângulo Mineiro  \n"
         "Licenciatura em Matemática – ICENE  \nUberaba – MG, 2026"
     )
