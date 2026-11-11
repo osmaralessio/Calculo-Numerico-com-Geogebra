@@ -126,26 +126,28 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
     html = f"""
 <style>
   html, body {{ margin:0; padding:0; }}
-  #barra {{ display:none; align-items:center; gap:6px; height:46px; padding:0 2px;
+  #barra {{ display:none; flex-wrap:wrap; align-items:center; gap:4px; padding:0 2px 4px;
            font-family:sans-serif; font-size:14px; color:#1f2328; }}
-  #barra button {{ min-width:44px; height:40px; font-size:20px; border:1px solid #c9c4b5; padding:0 8px;
+  #barra button {{ min-width:38px; height:40px; font-size:17px; border:1px solid #c9c4b5; padding:0 4px;
                   border-radius:10px; background:#f3f1ea; color:#143c96; touch-action:manipulation; }}
   #barra button:disabled {{ opacity:.4; }}
-  #barra #zoomTxt {{ min-width:40px; text-align:center; font-size:13px; color:#555; }}
-  #barra #btTela {{ font-size:13px; margin-left:auto; }}
-  #barra .sep {{ width:6px; }}
+  #barra #zoomTxt {{ min-width:38px; text-align:center; font-size:13px; color:#555; }}
+  #barra #btTela {{ margin-left:auto; display:flex; align-items:center; justify-content:center; }}
+  #barra .sep {{ width:2px; }}
   #moldura.celular {{ overflow:auto; -webkit-overflow-scrolling:touch; }}
   #moldura:fullscreen {{ background:#fff; overflow:auto; }}
 </style>
 <div id="raiz">
   <div id="barra">
     <button id="btEsq" type="button" aria-label="Deslizar para a esquerda" title="Deslizar para a esquerda">◀</button>
+    <button id="btCima" type="button" aria-label="Subir" title="Subir">▲</button>
+    <button id="btBaixo" type="button" aria-label="Descer" title="Descer">▼</button>
     <button id="btDir" type="button" aria-label="Deslizar para a direita" title="Deslizar para a direita">▶</button>
     <span class="sep"></span>
     <button id="btMenos" type="button" aria-label="Diminuir" title="Diminuir o aplicativo">−</button>
     <span id="zoomTxt">70%</span>
     <button id="btMais" type="button" aria-label="Aumentar" title="Aumentar o aplicativo">+</button>
-    <button id="btTela" type="button">Tela cheia</button>
+    <button id="btTela" type="button" aria-label="Tela cheia" title="Tela cheia"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#143c96" stroke-width="2.4" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
   </div>
   <div id="moldura" style="width:100%;height:{altura_iframe - 4}px;overflow:hidden;font-family:sans-serif">
     <div id="ggb"></div>
@@ -206,8 +208,15 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
   // Dimensiona a moldura (e, se possível, o quadro) para a escala s.
   function dimensionar(s) {{
     var mold = document.getElementById('moldura');
-    var altApp = Math.ceil(H * s) + 4;
-    if (!ajustarAltura(altApp + BARRA + 8)) altApp = Math.min(altApp, ALT - BARRA);
+    var barra = document.getElementById('barra').offsetHeight || BARRA;
+    // A janela do aplicativo nunca passa da altura da tela: assim a barra fica sempre à vista
+    // e o resto do aplicativo é alcançado com ▲ ▼ ◀ ▶ (rolagem dentro da moldura).
+    var tela = 0;
+    try {{ tela = window.parent.innerHeight; }} catch (e) {{}}
+    if (!tela) tela = window.screen ? window.screen.height : 700;
+    var visivel = Math.max(280, tela - barra - 90);
+    var altApp = Math.min(Math.ceil(H * s) + 4, visivel);
+    if (!ajustarAltura(altApp + barra + 8)) altApp = Math.min(altApp, ALT - barra);
     mold.style.height = altApp + 'px';
     document.getElementById('ggb').style.width = Math.ceil(W * s) + 'px';
     document.getElementById('zoomTxt').textContent = Math.round(s * 100) + '%';
@@ -269,6 +278,9 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
     var passo = function () {{ return Math.max(120, mold.clientWidth * 0.7); }};
     document.getElementById('btEsq').onclick = function () {{ mold.scrollBy({{left: -passo(), behavior: 'smooth'}}); }};
     document.getElementById('btDir').onclick = function () {{ mold.scrollBy({{left: passo(), behavior: 'smooth'}}); }};
+    var passoV = function () {{ return Math.max(100, mold.clientHeight * 0.6); }};
+    document.getElementById('btCima').onclick = function () {{ mold.scrollBy({{top: -passoV(), behavior: 'smooth'}}); }};
+    document.getElementById('btBaixo').onclick = function () {{ mold.scrollBy({{top: passoV(), behavior: 'smooth'}}); }};
     document.getElementById('btMenos').onclick = function () {{ mudarZoom(-1); }};
     document.getElementById('btMais').onclick = function () {{ mudarZoom(1); }};
     var podeTela = false;
