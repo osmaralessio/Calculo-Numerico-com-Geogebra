@@ -52,6 +52,13 @@ NOMES = {
     "RegraSimpson38_repetida.ggb": "Regra 3/8 de Simpson repetida",
     "MetodoRomberg.ggb": "Método de Romberg",
     "QuadraturaGaussLegendre.ggb": "Quadratura de Gauss-Legendre",
+    "MetodoEuler.ggb": "Método de Euler",
+    "RungeKutta2.ggb": "Runge-Kutta de 2ª ordem",
+    "RungeKutta4.ggb": "Runge-Kutta de 4ª ordem",
+    "OrdemMetodosEDO.ggb": "Ordem dos métodos para EDOs",
+    "SistemasEDO_RK4.ggb": "Sistemas de EDOs com RK4",
+    "MetodoTiro.ggb": "Método do tiro",
+    "DiferencasFinitasPVC.ggb": "Diferenças finitas para PVC",
 }
 
 LARGURA_COLUNA = 1080  # largura útil estimada da coluna de texto (px)
