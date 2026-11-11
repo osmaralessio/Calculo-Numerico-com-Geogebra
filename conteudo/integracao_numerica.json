@@ -1,0 +1,470 @@
+{
+ "numero": 6,
+ "id": "integracao_numerica",
+ "titulo": "Integração numérica",
+ "blocos": [
+  {
+   "tipo": "caixa",
+   "estilo": "como_usar",
+   "titulo": "Como usar os aplicativos deste capítulo",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Ao longo do capítulo, os quadros laranja *Atividade no GeoGebra* trazem o aplicativo, que abre aqui mesmo na página (botão **Abrir o aplicativo**):\n\n-   **Regra dos trapézios repetida**;\n\n-   **Regra 1/3 de Simpson repetida**;\n\n-   **Regra 3/8 de Simpson repetida**;\n\n-   **Método de Romberg**;\n\n-   **Quadratura de Gauss-Legendre**.\n\nOs cinco aplicativos começam com a integral $\\int_0^1 e^{-x^2}\\,dx$, que é o exemplo desenvolvido no texto. Em todos eles é possível digitar outra função no campo $f(x)=$, mudar o intervalo $[a,b]$ nos controles deslizantes e usar o botão *Enquadrar o gráfico* para ajustar a janela. A janela da direita mostra as contas e tem barras de rolagem (vertical e horizontal). O valor de referência da integral é calculado pelo próprio GeoGebra, com precisão bem maior que a dos métodos estudados."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.1 O problema da integração numérica\n\nO Teorema Fundamental do Cálculo resolve a integral definida quando conhecemos uma primitiva: $\\int_a^b f(x)\\,dx=F(b)-F(a)$, com $F'=f$. Na prática, esse caminho falha com frequência:\n\n-   muitas funções simples não têm primitiva expressa por funções elementares, como $e^{-x^2}$, $\\dfrac{\\operatorname{sen}x}{x}$, $\\sqrt{1+\\cos^2x}$ (comprimento de arco de uma senoide) ou $\\dfrac{1}{\\ln x}$;\n\n-   às vezes a primitiva existe, mas é tão complicada que avaliá-la custa mais (e acumula mais erros de arredondamento) do que aproximar a integral diretamente;\n\n-   muitas vezes $f$ só é conhecida numa tabela de valores medidos (velocidades, vazões, temperaturas) e não há fórmula para integrar.\n\nA ideia central deste capítulo vem do Capítulo 4: *trocamos $f$ por um polinômio interpolador $p$ e integramos $p$*, o que é sempre fácil. Como $p$ é uma combinação dos valores $f(x_i)$ nos nós, a integral aproximada também é: \n\n$$\n\\int_a^b f(x)\\,dx\\;\\approx\\;\\int_a^b p(x)\\,dx\\;=\\;\\sum_{i=0}^{n}w_i\\,f(x_i).\n$$\n\n Uma expressão desse tipo chama-se *fórmula de quadratura*; os $x_i$ são os *nós* e os $w_i$ são os *pesos*. Os pesos dependem só dos nós, não de $f$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "definicao",
+   "titulo": "Definição 6.1",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Uma fórmula de quadratura tem *grau de exatidão* $m$ se é exata (erro zero) para todos os polinômios de grau menor ou igual a $m$ e não é exata para algum polinômio de grau $m+1$. Como a fórmula e a integral são lineares, basta testar $1,x,x^2,\\dots,x^{m+1}$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Usaremos ao longo de todo o capítulo o mesmo exemplo, \n\n$$\nI=\\int_0^1 e^{-x^2}\\,dx = 0{,}746824132812\\dots,\n$$\n\n uma integral sem primitiva elementar (ela aparece na distribuição normal da Estatística, por meio da função erro $\\operatorname{erf}$). O valor acima foi obtido com alta precisão e serve para medir o erro de cada método.\n\nDividimos os métodos em dois grupos:\n\n1.  **Fórmulas de Newton-Cotes**: nós igualmente espaçados, $x_i=a+ih$. São as regras dos trapézios, $1/3$ de Simpson e $3/8$ de Simpson, quase sempre usadas na forma *repetida* (composta). A extrapolação de Richardson e o método de Romberg melhoram os trapézios sem novos tipos de fórmula.\n\n2.  **Quadratura de Gauss**: os nós também são escolhidos, de modo a obter o maior grau de exatidão possível com poucos pontos.\n\n## 6.2 Regra dos trapézios\n\n### 6.2.1 Regra simples\n\nInterpolando $f$ nos dois extremos, $x_0=a$ e $x_1=b$, obtemos a reta $p_1(x)=f(x_0)+\\dfrac{f(x_1)-f(x_0)}{h}(x-x_0)$, com $h=b-a$. A área sob essa reta é a área de um trapézio: \n\n$$\n\\int_{x_0}^{x_1}f(x)\\,dx\\approx T=\\frac{h}{2}\\bigl[f(x_0)+f(x_1)\\bigr].\n$$"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 6.2 (Erro da regra dos trapézios simples)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $f''$ é contínua em $[x_0,x_1]$ e $h=x_1-x_0$, existe $\\eta\\in(x_0,x_1)$ tal que \n\n$$\n\\int_{x_0}^{x_1}f(x)\\,dx-\\frac{h}{2}\\bigl[f(x_0)+f(x_1)\\bigr]=-\\frac{h^3}{12}\\,f''(\\eta).\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Pelo Teorema 4.7 (erro da interpolação) com dois nós, $f(x)-p_1(x)=\\dfrac{f''(\\xi(x))}{2}(x-x_0)(x-x_1)$. O produto $(x-x_0)(x-x_1)$ não muda de sinal em $[x_0,x_1]$ (é $\\le0$), então o Teorema do Valor Médio para integrais permite tirar $f''$ de dentro da integral: \n\n$$\n\\int_{x_0}^{x_1}\\bigl(f-p_1\\bigr)\\,dx=\\frac{f''(\\eta)}{2}\\int_{x_0}^{x_1}(x-x_0)(x-x_1)\\,dx\n=\\frac{f''(\\eta)}{2}\\cdot\\Bigl(-\\frac{h^3}{6}\\Bigr)=-\\frac{h^3}{12}f''(\\eta).\n\\qedhere\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "O erro depende de $f''$: a regra é exata para retas (grau de exatidão 1). Se $f$ é côncava para cima ($f''>0$), o trapézio fica acima do gráfico e a regra superestima a integral; se $f''<0$, subestima.\n\n### 6.2.2 Regra repetida\n\nCom um único trapézio, $h=b-a$ é grande e o erro também. A solução é dividir $[a,b]$ em $n$ subintervalos iguais, de comprimento $h=\\dfrac{b-a}{n}$, com nós $x_i=a+ih$ ($i=0,1,\\dots,n$), e somar as áreas dos $n$ trapézios. Cada nó interno pertence a dois trapézios, por isso aparece com peso 2: \n\n$$\n\\boxed{\\;T_n=\\frac{h}{2}\\Bigl[f(x_0)+2f(x_1)+2f(x_2)+\\dots+2f(x_{n-1})+f(x_n)\\Bigr]\\;}\n$$"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 6.3 (Erro da regra dos trapézios repetida)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $f''$ é contínua em $[a,b]$, existe $\\eta\\in(a,b)$ tal que \n\n$$\n\\int_a^b f(x)\\,dx-T_n=-\\frac{(b-a)\\,h^2}{12}\\,f''(\\eta).\n$$\n\n Em particular, se $|f''(x)|\\le M_2$ em $[a,b]$, então $\\Bigl|\\int_a^b f(x)\\,dx-T_n\\Bigr|\\le\\dfrac{(b-a)\\,h^2}{12}\\,M_2$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Somando os erros dos $n$ trapézios (Teorema 6.2), o erro total é $-\\dfrac{h^3}{12}\\sum_{i=1}^{n}f''(\\eta_i)$. A média $\\frac1n\\sum f''(\\eta_i)$ está entre o mínimo e o máximo de $f''$; pelo Teorema do Valor Intermediário, ela é igual a $f''(\\eta)$ para algum $\\eta$. Assim, o erro é $-\\dfrac{h^3}{12}\\,n\\,f''(\\eta)$, e $nh=b-a$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "O erro é proporcional a $h^2$: dobrar $n$ (dividir $h$ por 2) divide o erro por aproximadamente $4$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: $\\int_0^1 e^{-x^2}\\,dx$ pela regra dos trapézios",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Com $n=4$, $h=0{,}25$ e os nós $0$; $0{,}25$; $0{,}5$; $0{,}75$; $1$:\n\n|   $i$    |  0  |       1        |       2        |       3        |       4        |\n|:--------:|:---:|:--------------:|:--------------:|:--------------:|:--------------:|\n|  $x_i$   | $0$ |    $0{,}25$    |    $0{,}5$     |    $0{,}75$    |      $1$       |\n| $f(x_i)$ | $1$ | $0{,}93941307$ | $0{,}77880078$ | $0{,}56978282$ | $0{,}36787944$ |\n|   peso   |  1  |       2        |       2        |       2        |       1        |\n\n$$\n\\begin{aligned}\nT_4&=\\frac{0{,}25}{2}\\bigl[1+2(0{,}93941307+0{,}77880078+0{,}56978282)+0{,}36787944\\bigr]\\\\\n&=\\frac{0{,}25}{2}\\cdot5{,}94387278=0{,}74298410.\n\\end{aligned}\n$$\n\n O erro real é $|I-T_4|\\approx3{,}84\\times10^{-3}$. Para a cota, $f''(x)=(4x^2-2)e^{-x^2}$ e $M_2=\\max_{[0,1]}|f''(x)|=2$ (em $x=0$), logo $\\dfrac{(b-a)h^2}{12}M_2=\\dfrac{0{,}0625}{12}\\cdot2\\approx1{,}04\\times10^{-2}$, coerente com o erro observado. Dobrando $n$ sucessivamente:\n\n| $n$ |      $T_n$       |       $|I-T_n|$       | razão entre erros consecutivos |\n|:---:|:----------------:|:---------------------:|:------------------------------:|\n|  1  | $0{,}6839397206$ | $6{,}29\\times10^{-2}$ |                                |\n|  2  | $0{,}7313702518$ | $1{,}55\\times10^{-2}$ |            $4{,}07$            |\n|  4  | $0{,}7429840978$ | $3{,}84\\times10^{-3}$ |            $4{,}02$            |\n|  8  | $0{,}7458656148$ | $9{,}59\\times10^{-4}$ |            $4{,}01$            |\n| 16  | $0{,}7465845968$ | $2{,}40\\times10^{-4}$ |            $4{,}00$            |\n\nA razão se aproxima de $4=2^2$, como previsto."
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap6_fig01.png",
+   "titulo": "",
+   "legenda": "**Figura 6.1.** Regra dos trapézios repetida para $\\int_0^1 e^{-x^2}\\,dx$ com $n=4$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: regra dos trapézios repetida",
+   "arquivo": "RegraTrapezios_repetida.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Abra o aplicativo. À esquerda ficam o gráfico de $f$, os trapézios e os controles; à direita, o passo $h$, a tabela com os nós, os valores $f(x_i)$, os pesos $c_i$ e os produtos $c_i\\,f(x_i)$, a soma $S$, o valor $T_n=\\frac h2S$ e o quadro do erro.\n\n1.  Confira, com $n=4$, todos os números do exemplo acima.\n\n2.  Faça $n=2,4,8,16$ e anote o erro $|I-T_n|$. Calcule as razões entre erros consecutivos.\n\n3.  Marque *Mostrar a área exata*. Em que partes do intervalo os trapézios ficam acima do gráfico? Relacione com o sinal de $f''(x)=(4x^2-2)e^{-x^2}$.\n\n4.  Digite $f(x)=3x+1$ e depois $f(x)=x^2$. Para qual das duas a regra é exata? Por quê?\n\n5.  Digite $f(x)=x^2$ em $[0,1]$ e confira que o erro real é *igual* à cota. O que há de especial com $f''$ nesse caso?"
+    }
+   ],
+   "aplicativos": [
+    "RegraTrapezios_repetida.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.3 Regra 1/3 de Simpson\n\n### 6.3.1 Regra simples\n\nAgora interpolamos $f$ por uma parábola em três nós igualmente espaçados $x_0$, $x_1=x_0+h$, $x_2=x_0+2h$. Pela forma de Lagrange, $p_2(x)=f(x_0)L_0(x)+f(x_1)L_1(x)+f(x_2)L_2(x)$, e basta integrar as bases. Com a mudança de variável $x=x_0+sh$ ($dx=h\\,ds$, $s\\in[0,2]$): \n\n$$\n\\begin{aligned}\n\\int_{x_0}^{x_2}L_0(x)\\,dx&=h\\int_0^2\\frac{(s-1)(s-2)}{2}\\,ds=\\frac{h}{3},&\n\\int_{x_0}^{x_2}L_1(x)\\,dx&=h\\int_0^2\\frac{s(s-2)}{-1}\\,ds=\\frac{4h}{3},\\\\\n\\int_{x_0}^{x_2}L_2(x)\\,dx&=h\\int_0^2\\frac{s(s-1)}{2}\\,ds=\\frac{h}{3}.\n\\end{aligned}\n$$\n\n Portanto \n\n$$\n\\int_{x_0}^{x_2}f(x)\\,dx\\approx\\frac{h}{3}\\bigl[f(x_0)+4f(x_1)+f(x_2)\\bigr].\n$$\n\n O nome vem do fator $h/3$. Os pesos somam $2h$, que é o comprimento do intervalo, como deve ser para que a fórmula integre exatamente $f\\equiv1$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 6.4 (Erro da regra 1/3 de Simpson simples)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $f^{(4)}$ é contínua em $[x_0,x_2]$, existe $\\eta\\in(x_0,x_2)$ tal que \n\n$$\n\\int_{x_0}^{x_2}f(x)\\,dx-\\frac{h}{3}\\bigl[f(x_0)+4f(x_1)+f(x_2)\\bigr]=-\\frac{h^5}{90}\\,f^{(4)}(\\eta).\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Esperaríamos um erro com $f'''$, pois interpolamos por um polinômio de grau 2. Mas a fórmula é exata também para $x^3$: por simetria, para $f(x)=(x-x_1)^3$ a integral em $[x_0,x_2]$ é zero e a fórmula também dá $\\frac h3[(-h)^3+0+h^3]=0$. Assim, a regra $1/3$ tem grau de exatidão 3, e o erro depende de $f^{(4)}$. Esse “ganho grátis” acontece em todas as fórmulas de Newton-Cotes com número ímpar de nós."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "### 6.3.2 Regra repetida\n\nDividimos $[a,b]$ em um número **par** $n$ de subintervalos, $h=\\dfrac{b-a}{n}$, e aplicamos a regra simples em cada par $[x_0,x_2]$, $[x_2,x_4]$, …, $[x_{n-2},x_n]$. Os nós de índice ímpar são meios de pares (peso 4); os de índice par interno são extremos de dois pares (peso 2): \n\n$$\n\\boxed{\\;S_n=\\frac{h}{3}\\Bigl[f(x_0)+4f(x_1)+2f(x_2)+4f(x_3)+\\dots+2f(x_{n-2})+4f(x_{n-1})+f(x_n)\\Bigr]\\;}\n$$"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 6.5 (Erro da regra 1/3 de Simpson repetida)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $f^{(4)}$ é contínua em $[a,b]$ e $n$ é par, existe $\\eta\\in(a,b)$ tal que \n\n$$\n\\int_a^b f(x)\\,dx-S_n=-\\frac{(b-a)\\,h^4}{180}\\,f^{(4)}(\\eta),\n\\qquad\\text{logo}\\qquad\n\\Bigl|\\int_a^b f(x)\\,dx-S_n\\Bigr|\\le\\frac{(b-a)\\,h^4}{180}\\,M_4,\n$$\n\n com $M_4=\\max_{[a,b]}|f^{(4)}(x)|$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "(A demonstração é a mesma do Teorema 6.3: são $n/2$ parcelas $-\\frac{h^5}{90}f^{(4)}(\\eta_i)$ e $\\frac n2h^5=\\frac{(b-a)h^4}{2}$.) Agora dobrar $n$ divide o erro por aproximadamente $2^4=16$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: $\\int_0^1 e^{-x^2}\\,dx$ pela regra 1/3 de Simpson",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Com $n=4$ usamos os mesmos cinco valores do exemplo dos trapézios, com pesos $1,4,2,4,1$: \n\n$$\n\\begin{aligned}\nS_4&=\\frac{0{,}25}{3}\\bigl[1+4(0{,}93941307)+2(0{,}77880078)+4(0{,}56978282)+0{,}36787944\\bigr]\\\\\n&=\\frac{0{,}25}{3}\\cdot8{,}96226456=0{,}74685538.\n\\end{aligned}\n$$\n\n O erro real é $|I-S_4|\\approx3{,}12\\times10^{-5}$, cerca de 120 vezes menor que o dos trapézios com os *mesmos* cinco valores de $f$. Para a cota, $f^{(4)}(x)=(16x^4-48x^2+12)e^{-x^2}$ e $M_4=12$ (em $x=0$): $\\dfrac{1\\cdot0{,}25^4}{180}\\cdot12\\approx2{,}60\\times10^{-4}$.\n\n| $n$ |      $S_n$       |       $|I-S_n|$       |  razão   |\n|:---:|:----------------:|:---------------------:|:--------:|\n|  2  | $0{,}7471804289$ | $3{,}56\\times10^{-4}$ |          |\n|  4  | $0{,}7468553798$ | $3{,}12\\times10^{-5}$ | $11{,}4$ |\n|  8  | $0{,}7468261205$ | $1{,}99\\times10^{-6}$ | $15{,}7$ |\n| 16  | $0{,}7468242574$ | $1{,}25\\times10^{-7}$ | $15{,}9$ |"
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap6_fig02.png",
+   "titulo": "",
+   "legenda": "**Figura 6.2.** Regra 1/3 de Simpson simples: a área sob a parábola que passa pelos três nós substitui a área sob $f$. Aqui, $f(x)=e^{-x^2}$ em $[0,2]$ com $h=1$ (escolhido grande para que a diferença entre as curvas fique visível)."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: regra 1/3 de Simpson repetida",
+   "arquivo": "RegraSimpson13_repetida.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo desenha, em cada par de subintervalos, a região sob a parábola que passa pelos três nós. À direita aparecem a tabela com os pesos $1,4,2,4,\\dots,4,1$, a soma, $S_n$ e o quadro do erro.\n\n1.  Confira os números do exemplo com $n=4$ e compare com a tabela dos trapézios (os valores $f(x_i)$ são os mesmos; só os pesos mudam).\n\n2.  Faça $n=2,4,8,16$ e verifique que as razões entre os erros se aproximam de $16$.\n\n3.  Digite $f(x)=x^3-2x+1$ em $[-1,2]$ com $n=2$. O erro é zero? Explique com o grau de exatidão. E com $f(x)=x^4$?\n\n4.  Com $f(x)=e^{-x^2}$ em $[0,2]$ e $n=2$, compare o gráfico com a Figura 6.2. Aumente $n$ e observe as parábolas se confundirem com $f$."
+    }
+   ],
+   "aplicativos": [
+    "RegraSimpson13_repetida.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.4 Regra 3/8 de Simpson\n\nInterpolando $f$ por uma cúbica em quatro nós igualmente espaçados $x_0,\\dots,x_3$ e integrando as bases de Lagrange (com $x=x_0+sh$, $s\\in[0,3]$), obtemos \n\n$$\n\\int_{x_0}^{x_3}f(x)\\,dx\\approx\\frac{3h}{8}\\bigl[f(x_0)+3f(x_1)+3f(x_2)+f(x_3)\\bigr],\n\\qquad\\text{erro}=-\\frac{3h^5}{80}\\,f^{(4)}(\\eta).\n$$\n\n O grau de exatidão também é 3: o quarto nó não aumenta o grau, apenas melhora a constante do erro por trecho. Na forma repetida, com $n$ **múltiplo de 3**, os nós que separam dois grupos têm peso 2 e os demais nós internos têm peso 3: \n\n$$\n\\boxed{\\;S^{3/8}_n=\\frac{3h}{8}\\Bigl[f(x_0)+3f(x_1)+3f(x_2)+2f(x_3)+3f(x_4)+\\dots+3f(x_{n-1})+f(x_n)\\Bigr]\\;}\n$$\n\n com erro $-\\dfrac{(b-a)\\,h^4}{80}\\,f^{(4)}(\\eta)$.\n\nComparando as cotas, $\\frac{1}{80}>\\frac{1}{180}$: com o mesmo $h$, a regra $1/3$ costuma ser mais precisa. A regra $3/8$ é útil quando o número de subintervalos é ímpar (por exemplo, numa tabela de dados com $n=7$): aplica-se a $3/8$ em três subintervalos e a $1/3$ nos quatro restantes."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: $\\int_0^1 e^{-x^2}\\,dx$ pela regra 3/8 de Simpson",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Com $n=3$, $h=\\frac13$ e $f(0)=1$, $f(\\frac13)=0{,}89483932$, $f(\\frac23)=0{,}64118039$, $f(1)=0{,}36787944$: \n\n$$\n\\begin{aligned}\nS^{3/8}_3&=\\frac{3\\cdot\\frac13}{8}\\bigl[1+3(0{,}89483932)+3(0{,}64118039)+0{,}36787944\\bigr]\\\\\n&=\\frac18\\cdot5{,}97593856=0{,}74699232,\n\\end{aligned}\n$$\n\n com erro $|I-S^{3/8}_3|\\approx1{,}68\\times10^{-4}$. Com $n=6$, $S^{3/8}_6=0{,}7468380575$ e o erro cai para $1{,}39\\times10^{-5}$ (razão $\\approx12$). Com o mesmo $n=6$, a regra $1/3$ dá erro $\\approx 6{,}3\\times10^{-6}$ (Exercício 4)."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: regra 3/8 de Simpson repetida",
+   "arquivo": "RegraSimpson38_repetida.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Aqui cada grupo de três subintervalos é substituído pela cúbica que passa pelos quatro nós.\n\n1.  Confira o exemplo com $n=3$ e depois com $n=6$.\n\n2.  Abra também o aplicativo da regra $1/3$ e use $n=6$ e $n=12$ nos dois. Qual regra tem o menor erro? A razão entre os erros é próxima de $\\frac{180}{80}=2{,}25$?\n\n3.  Teste $f(x)=x^3$ e $f(x)=x^4$ em $[0,3]$ com $n=3$. Confira que o grau de exatidão é 3."
+    }
+   ],
+   "aplicativos": [
+    "RegraSimpson38_repetida.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.5 Fórmulas de Newton-Cotes: resumo\n\nAs três regras são casos da mesma construção: nós igualmente espaçados e integração do polinômio interpolador. Na tabela, $h$ é o espaçamento e o erro é o da fórmula simples.\n\n| fórmula (simples)                                   | nós | grau de exatidão |               erro               |\n|:----------------------------------------------------|:---:|:----------------:|:--------------------------------:|\n| trapézios: $\\frac h2(f_0+f_1)$                      |  2  |        1         |    $-\\frac{h^3}{12}f''(\\eta)$    |\n| $1/3$ de Simpson: $\\frac h3(f_0+4f_1+f_2)$          |  3  |        3         |  $-\\frac{h^5}{90}f^{(4)}(\\eta)$  |\n| $3/8$ de Simpson: $\\frac{3h}{8}(f_0+3f_1+3f_2+f_3)$ |  4  |        3         | $-\\frac{3h^5}{80}f^{(4)}(\\eta)$  |\n| Boole: $\\frac{2h}{45}(7f_0+32f_1+12f_2+32f_3+7f_4)$ |  5  |        5         | $-\\frac{8h^7}{945}f^{(6)}(\\eta)$ |"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Por que não usar um único polinômio de grau alto em todo o intervalo? Pelo mesmo motivo do fenômeno de Runge (Figura 4.4): com muitos nós igualmente espaçados o polinômio interpolador pode oscilar, e, a partir de 9 nós, as fórmulas de Newton-Cotes passam a ter pesos negativos, o que amplifica erros de arredondamento. Na prática, usamos fórmulas de grau baixo *repetidas* em muitos subintervalos."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.6 Quantos subintervalos usar?\n\nAs cotas de erro permitem escolher $n$ *antes* de calcular, desde que saibamos limitar a derivada que aparece na fórmula."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: escolha de $n$ para $\\int_1^2\\frac{dx}{x}=\\ln2$ com erro menor que $10^{-4}$",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Para $f(x)=\\frac1x$ temos $f''(x)=\\frac{2}{x^3}$ e $f^{(4)}(x)=\\frac{24}{x^5}$, ambas decrescentes em $[1,2]$; logo $M_2=2$ e $M_4=24$.\n\n**Trapézios:** $\\dfrac{(2-1)h^2}{12}\\cdot2\\le10^{-4}\\iff h^2\\le6\\times10^{-4}\\iff h\\le0{,}02449$. Como $h=\\frac1n$, precisamos de $n\\ge40{,}8$, isto é, $n=41$ subintervalos (42 valores de $f$).\n\n**Simpson 1/3:** $\\dfrac{(2-1)h^4}{180}\\cdot24\\le10^{-4}\\iff h^4\\le7{,}5\\times10^{-4}\\iff h\\le0{,}1655$, isto é, $n\\ge6{,}04$; como $n$ deve ser par, $n=8$ (9 valores de $f$).\n\nOs erros reais são $|\\ln2-T_{41}|\\approx3{,}7\\times10^{-5}$ e $|\\ln2-S_8|\\approx7{,}4\\times10^{-6}$. As cotas garantem a tolerância, mas são pessimistas: com $S_6$ o erro já seria $2{,}3\\times10^{-5}$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Quando não conseguimos limitar a derivada (ou $f$ vem de uma tabela), uma alternativa é comparar duas aproximações: se $T_n$ e $T_{2n}$ concordam em $k$ casas, temos uma boa ideia da precisão. A próxima seção transforma essa comparação num método muito mais eficiente.\n\n## 6.7 Extrapolação de Richardson e método de Romberg\n\n### 6.7.1 A ideia de Richardson\n\nPara $f$ suficientemente derivável, a fórmula de Euler-Maclaurin garante que o erro dos trapézios tem uma expansão em potências *pares* de $h$: \n\n$$\nT(h)=I+c_1h^2+c_2h^4+c_3h^6+\\cdots,\n$$\n\n com $c_1,c_2,\\dots$ que não dependem de $h$. Escrevendo a mesma expressão para $h/2$, \n\n$$\nT(h/2)=I+c_1\\frac{h^2}{4}+c_2\\frac{h^4}{16}+\\cdots,\n$$\n\n e combinando as duas para eliminar o termo em $h^2$: \n\n$$\n\\frac{4\\,T(h/2)-T(h)}{3}=I-\\frac{c_2}{4}h^4+\\cdots=T(h/2)+\\frac{T(h/2)-T(h)}{3}.\n$$\n\n O resultado tem erro $O(h^4)$, muito menor, sem nenhuma nova avaliação de $f$. Isso é a *extrapolação de Richardson*."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proposicao",
+   "titulo": "Proposição 6.6",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Para todo $n$, $\\dfrac{4\\,T_{2n}-T_n}{3}=S_{2n}$: um passo de Richardson aplicado aos trapézios reproduz a regra $1/3$ de Simpson."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Basta verificar num par de subintervalos $[x_0,x_2]$ de comprimento $2h$: $T_1=h\\,(f_0+f_2)$ e $T_2=\\frac h2(f_0+2f_1+f_2)$. Então $\\frac{4T_2-T_1}{3}=\\frac{h}{3}\\bigl(2f_0+4f_1+2f_2-f_0-f_2\\bigr)=\\frac h3(f_0+4f_1+f_2)$. Somando sobre os pares, obtemos $S_{2n}$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "### 6.7.2 O método de Romberg\n\nRepetindo a ideia, cada nova coluna elimina mais um termo da expansão ($h^4$, depois $h^6$, …). Organizamos tudo numa tabela triangular."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "algoritmo",
+   "titulo": "Algoritmo: método de Romberg",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "1.  Para $k=0,1,\\dots,K$: calcule $R_{k,0}=T_{2^k}$ (trapézios com $2^k$ subintervalos). Cada $T_{2^k}$ reaproveita todos os valores de $f$ de $T_{2^{k-1}}$: $T_{2n}=\\frac12T_n+h_{2n}\\sum f(\\text{novos pontos médios})$.\n\n2.  Para $j=1,\\dots,k$: \n\n$$\nR_{k,j}=R_{k,j-1}+\\frac{R_{k,j-1}-R_{k-1,j-1}}{4^j-1}.\n$$\n\n3.  Pare quando $|R_{k,k}-R_{k-1,k-1}|$ for menor que a tolerância. A melhor aproximação é $R_{K,K}$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Pela Proposição 6.6, a coluna $R_{k,1}$ é a regra $1/3$ de Simpson com $2^k$ subintervalos; a coluna $R_{k,2}$ coincide com a regra de Boole."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: Romberg para $\\int_0^1 e^{-x^2}\\,dx$ com $K=4$",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "| $k$ | $n$ | $R_{k,0}=T_n$    | $R_{k,1}$        | $R_{k,2}$        | $R_{k,3}$        | $R_{k,4}$        |\n|:---:|:---:|:-----------------|:-----------------|:-----------------|:-----------------|:-----------------|\n|  0  |  1  | $0{,}6839397206$ |                  |                  |                  |                  |\n|  1  |  2  | $0{,}7313702518$ | $0{,}7471804289$ |                  |                  |                  |\n|  2  |  4  | $0{,}7429840978$ | $0{,}7468553798$ | $0{,}7468337098$ |                  |                  |\n|  3  |  8  | $0{,}7458656148$ | $0{,}7468261205$ | $0{,}7468241699$ | $0{,}7468240185$ |                  |\n|  4  | 16  | $0{,}7465845968$ | $0{,}7468242574$ | $0{,}7468241332$ | $0{,}7468241326$ | $0{,}7468241331$ |\n\nPor exemplo, $R_{1,1}=0{,}7313702518+\\frac{0{,}7313702518-0{,}6839397206}{3}=0{,}7471804289$. Com os mesmos 17 valores de $f$ usados por $T_{16}$ (erro $2{,}4\\times10^{-4}$), o valor $R_{4,4}$ tem erro de apenas $2{,}8\\times10^{-10}$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Na linha $k=3$, $R_{3,3}$ (erro $1{,}1\\times10^{-7}$) é um pouco pior que $R_{3,2}$ (erro $3{,}7\\times10^{-8}$). A expansão $c_1h^2+c_2h^4+\\cdots$ só descreve bem o erro quando $h$ já é pequeno; com $h=\\frac18$ o termo seguinte ainda pesa. Por isso o critério de parada compara linhas sucessivas da diagonal. Se $f$ não for suave (por exemplo, $\\sqrt x$ perto de $0$), a expansão nem vale, e o ganho do método desaparece (Exercício 11)."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: método de Romberg",
+   "arquivo": "MetodoRomberg.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O controle $K$ escolhe quantas linhas da tabela aparecem; o controle $m$ escolhe quais trapézios ($2^m$ subintervalos) são desenhados.\n\n1.  Com $K=4$, confira a tabela do exemplo e o erro de $R_{4,4}$.\n\n2.  Compare a coluna $R_{k,1}$ com os valores $S_n$ obtidos no aplicativo da regra $1/3$.\n\n3.  Com $K=5$, quantas avaliações de $f$ foram usadas? Qual é o erro de $R_{5,5}$?\n\n4.  Digite $f(x)=\\sqrt{x}$ em $[0,1]$ e compare os erros dos trapézios e de Romberg com os de $e^{-x^2}$. O que mudou?"
+    }
+   ],
+   "aplicativos": [
+    "MetodoRomberg.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.8 Quadratura de Gauss-Legendre\n\n### 6.8.1 A ideia\n\nNas fórmulas de Newton-Cotes os nós são fixados de antemão e só os pesos são escolhidos; com $n$ nós, o grau de exatidão é $n-1$ ou $n$. Se escolhermos também os nós, teremos $2n$ parâmetros livres ($x_1,\\dots,x_n$ e $w_1,\\dots,w_n$) e poderemos exigir exatidão para $1,x,\\dots,x^{2n-1}$, ou seja, grau de exatidão $2n-1$.\n\nTrabalhamos no intervalo padrão $[-1,1]$. Para $n=2$, queremos $\\int_{-1}^{1}g(t)\\,dt\\approx w_1g(t_1)+w_2g(t_2)$ exata para $g=1,t,t^2,t^3$: \n\n$$\n\\begin{cases}\nw_1+w_2=2\\\\\nw_1t_1+w_2t_2=0\\\\\nw_1t_1^2+w_2t_2^2=\\frac23\\\\\nw_1t_1^3+w_2t_2^3=0\n\\end{cases}\n$$\n\n Por simetria, procuramos $t_2=-t_1$ e $w_1=w_2$. A primeira equação dá $w_1=w_2=1$ e a terceira, $2t_1^2=\\frac23$, ou seja, $t_{1,2}=\\mp\\frac{1}{\\sqrt3}$. Assim, \n\n$$\n\\int_{-1}^{1}g(t)\\,dt\\approx g\\Bigl(-\\tfrac{1}{\\sqrt3}\\Bigr)+g\\Bigl(\\tfrac{1}{\\sqrt3}\\Bigr),\n$$\n\n exata para cúbicas com apenas *duas* avaliações (a regra $1/3$ de Simpson precisa de três).\n\nPara $n$ qualquer, os nós são as raízes do *polinômio de Legendre* $P_n(t)$ (por isso o nome Gauss-Legendre) e os pesos são positivos. A tabela traz os primeiros casos.\n\n| $n$ |                    nós $t_i$                    |                    pesos $w_i$                     |\n|:---:|:-----------------------------------------------:|:--------------------------------------------------:|\n|  1  |                       $0$                       |                        $2$                         |\n|  2  |  $\\pm\\frac{1}{\\sqrt3}\\approx\\pm0{,}5773502692$  |                        $1$                         |\n|  3  | $0$;$\\pm\\sqrt{\\frac35}\\approx\\pm0{,}7745966692$ |                $\\frac89$;$\\frac59$                 |\n|  4  |     $\\pm0{,}3399810436$;$\\pm0{,}8611363116$     |         $0{,}6521451549$;$0{,}3478548451$          |\n|  5  |   $0$;$\\pm0{,}5384693101$;$\\pm0{,}9061798459$   | $0{,}5688888889$;$0{,}4786286705$;$0{,}2369268851$ |\n\n### 6.8.2 Mudança de intervalo\n\nPara integrar em $[a,b]$, usamos a mudança de variável afim $x=\\dfrac{b-a}{2}\\,t+\\dfrac{a+b}{2}$, que leva $[-1,1]$ em $[a,b]$, com $dx=\\frac{b-a}{2}\\,dt$: \n\n$$\n\\boxed{\\;\\int_a^b f(x)\\,dx\\approx G_n=\\frac{b-a}{2}\\sum_{i=1}^{n}w_i\\,f(x_i),\\qquad\nx_i=\\frac{b-a}{2}\\,t_i+\\frac{a+b}{2}.\\;}\n$$"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 6.7 (Erro da quadratura de Gauss-Legendre)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $f^{(2n)}$ é contínua em $[a,b]$, existe $\\eta\\in(a,b)$ tal que \n\n$$\n\\int_a^b f(x)\\,dx-G_n=\\frac{(b-a)^{2n+1}\\,(n!)^4}{(2n+1)\\,\\bigl[(2n)!\\bigr]^3}\\,f^{(2n)}(\\eta).\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: $\\int_0^1 e^{-x^2}\\,dx$ por Gauss-Legendre",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Aqui $\\frac{b-a}{2}=\\frac{a+b}{2}=\\frac12$, logo $x_i=\\frac{t_i+1}{2}$.\n\n**Dois pontos:** $x_{1,2}=\\frac12\\mp\\frac{1}{2\\sqrt3}\\approx0{,}21132487$ e $0{,}78867513$; \n\n$$\nG_2=\\frac12\\bigl[e^{-0{,}21132487^2}+e^{-0{,}78867513^2}\\bigr]\n=\\frac12\\bigl[0{,}95632430+0{,}53686508\\bigr]=0{,}74659469,\n$$\n\n com erro $2{,}29\\times10^{-4}$. Com o mesmo número de avaliações, o trapézio simples tem erro $6{,}3\\times10^{-2}$.\n\n**Três pontos:** $x_2=\\frac12$ e $x_{1,3}=\\frac12\\mp\\frac12\\sqrt{0{,}6}\\approx0{,}11270167$ e $0{,}88729833$; \n\n$$\nG_3=\\frac12\\Bigl[\\tfrac59\\,f(0{,}11270167)+\\tfrac89\\,f(0{,}5)+\\tfrac59\\,f(0{,}88729833)\\Bigr]=0{,}74681458,\n$$\n\n com erro $9{,}5\\times10^{-6}$, cerca de 37 vezes menor que o de Simpson simples ($S_2$, também com três avaliações). Com cinco pontos, $G_5=0{,}7468241268$, com erro $6\\times10^{-9}$."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: quadratura de Gauss-Legendre",
+   "arquivo": "QuadraturaGaussLegendre.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo mostra os nós $t_i$ e os pesos $w_i$, os nós $x_i$ já transportados para $[a,b]$, o valor $G_{np}$ e uma comparação com os trapézios e com Simpson. No gráfico, a curva tracejada é o polinômio que passa pelos pontos $(x_i,f(x_i))$, e a área laranja é a sua integral.\n\n1.  Confira os valores do exemplo para $np=2$ e $np=3$.\n\n2.  Verifique que a área laranja é igual a $G_{np}$. Por que isso acontece? (Pense na fórmula como integral de um polinômio interpolador.)\n\n3.  Com $np=2$, digite $f(x)=x^3$ e depois $f(x)=x^4$ em $[0,1]$. Em qual caso o erro é zero? Confira o erro do segundo caso com o teorema acima.\n\n4.  Digite $f(x)=1/(1+25x^2)$ em $[-1,1]$ e aumente $np$ de 1 a 5. O polinômio tracejado oscila, mas o erro diminui (com oscilações). Para a quadratura de Gauss, sabe-se que $G_n\\to I$ para toda $f$ contínua, pois os pesos são positivos; com 20 pontos o erro já seria $3{,}6\\times10^{-4}$."
+    }
+   ],
+   "aplicativos": [
+    "QuadraturaGaussLegendre.ggb"
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "A quadratura de Gauss não usa os extremos $a$ e $b$. Isso permite integrar funções que não estão definidas nos extremos, como $\\int_0^1\\frac{\\operatorname{sen}x}{x}\\,dx$ ou $\\int_0^1\\frac{dx}{\\sqrt x}$ (esta última converge devagar, mas a fórmula pode ser aplicada). Por outro lado, os nós são números irracionais, o que torna o método inadequado para dados tabelados em pontos igualmente espaçados."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 6.9 Comparação dos métodos\n\nA tabela reúne os resultados do exemplo $\\int_0^1 e^{-x^2}\\,dx$. O custo de um método de integração numérica se mede, principalmente, pelo número de avaliações de $f$.\n\n| método                | avaliações de $f$ |   aproximação    |         erro          |\n|:----------------------|:-----------------:|:----------------:|:---------------------:|\n| trapézios, $n=4$      |         5         | $0{,}7429840978$ | $3{,}8\\times10^{-3}$  |\n| trapézios, $n=16$     |        17         | $0{,}7465845968$ | $2{,}4\\times10^{-4}$  |\n| Simpson $1/3$, $n=4$  |         5         | $0{,}7468553798$ | $3{,}1\\times10^{-5}$  |\n| Simpson $3/8$, $n=6$  |         7         | $0{,}7468380575$ | $1{,}4\\times10^{-5}$  |\n| Simpson $1/3$, $n=16$ |        17         | $0{,}7468242574$ | $1{,}2\\times10^{-7}$  |\n| Romberg, $R_{4,4}$    |        17         | $0{,}7468241331$ | $2{,}8\\times10^{-10}$ |\n| Gauss, 3 pontos       |         3         | $0{,}7468145842$ | $9{,}5\\times10^{-6}$  |\n| Gauss, 5 pontos       |         5         | $0{,}7468241268$ | $6{,}0\\times10^{-9}$  |"
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap6_fig03.png",
+   "titulo": "",
+   "legenda": "**Figura 6.3.** Erro em função do número de avaliações de $f$ para $\\int_0^1 e^{-x^2}\\,dx$, em escala logarítmica. As retas dos trapézios e de Simpson têm inclinações $-2$ e $-4$ (erros proporcionais a $h^2$ e $h^4$)."
+  },
+  {
+   "tipo": "md",
+   "texto": "**Em resumo.**\n\n-   A **regra dos trapézios** é a mais simples e funciona com qualquer tabela de dados, mas converge devagar ($h^2$). É imbatível, porém, para funções periódicas integradas num período inteiro, caso em que a expansão de Euler-Maclaurin se anula.\n\n-   A **regra 1/3 de Simpson** custa o mesmo e converge com $h^4$; é a escolha padrão para dados igualmente espaçados com $n$ par. A **3/8** completa o caso de $n$ ímpar.\n\n-   **Romberg** aproveita as mesmas avaliações dos trapézios e atinge precisão alta quando $f$ é suave.\n\n-   **Gauss-Legendre** dá a maior precisão por avaliação para funções suaves dadas por fórmula, mas exige calcular $f$ em pontos irracionais.\n\n-   Para funções com singularidades ou mudanças bruscas, todos os métodos perdem desempenho; usam-se então métodos *adaptativos*, que refinam a malha só onde é necessário (é o que fazem os programas profissionais e o comando `Integral` do GeoGebra).\n\n## 6.10 Exercícios\n\n1.  Calcule $\\int_0^{\\pi}\\operatorname{sen}x\\,dx$ pela regra dos trapézios e pela regra $1/3$ de Simpson, ambas com $n=4$. Compare com o valor exato $2$.\n\n2.  Verifique que a regra dos trapézios tem grau de exatidão 1 e que a regra $1/3$ de Simpson tem grau de exatidão 3, testando-as em $1,x,x^2,x^3,x^4$ no intervalo $[0,2]$ com a fórmula simples.\n\n3.  Quantos subintervalos são necessários para calcular $\\int_0^1 e^{-x^2}\\,dx$ com erro menor que $10^{-6}$ (a) pela regra dos trapézios; (b) pela regra $1/3$ de Simpson? Use $M_2=2$ e $M_4=12$.\n\n4.  Calcule $S_6$ (regra $1/3$, $n=6$) para $\\int_0^1 e^{-x^2}\\,dx$ e compare com $S^{3/8}_6=0{,}7468380575$.\n\n5.  A velocidade de um carro (em m/s) foi registrada a cada 10 segundos:\n\n    |  $t$ (s)  |  0  | 10  |  20  |  30  |  40  |  50  |  60  |\n    |:---------:|:---:|:---:|:----:|:----:|:----:|:----:|:----:|\n    | $v$ (m/s) |  0  | 8,2 | 14,6 | 19,3 | 22,4 | 24,1 | 24,8 |\n\n    Estime a distância percorrida, $\\int_0^{60}v(t)\\,dt$, pela regra dos trapézios e pelas regras $1/3$ e $3/8$ de Simpson.\n\n6.  Mostre que, ao integrar as bases de Lagrange de quatro nós igualmente espaçados em $[x_0,x_3]$, obtêm-se os pesos $\\frac{3h}{8},\\frac{9h}{8},\\frac{9h}{8},\\frac{3h}{8}$ da regra $3/8$. (Sugestão: use $x=x_0+sh$, $s\\in[0,3]$.)\n\n7.  Construa a tabela de Romberg com $K=2$ para $\\int_0^1\\dfrac{4}{1+x^2}\\,dx=\\pi$.\n\n8.  Use Gauss-Legendre com 2 e com 3 pontos para calcular $\\int_0^{\\pi/2}\\operatorname{sen}x\\,dx=1$.\n\n9.  Deduza a fórmula de Gauss-Legendre com $n=1$ (um nó e um peso) exigindo exatidão para $1$ e $t$. Que regra conhecida ela é?\n\n10. **(GeoGebra)** No aplicativo de Gauss-Legendre, use $np=2$, $f(x)=x^4$ e $[a,b]=[0,1]$. Calcule o erro pela fórmula do teorema e compare com o aplicativo.\n\n11. **(GeoGebra)** No aplicativo de Romberg, digite $f(x)=\\sqrt{x}$ em $[0,1]$ (valor exato $\\frac23$) e use $K=5$. As razões entre erros consecutivos dos trapézios ainda são próximas de 4? O valor $R_{5,5}$ é tão bom quanto no exemplo com $e^{-x^2}$? Explique.\n\n12. **(GeoGebra)** No aplicativo dos trapézios, digite `sin(2pi x)^2`, isto é, $f(x)=\\operatorname{sen}^2(2\\pi x)$, em $[0,1]$ (valor exato $\\frac12$). Compare os resultados com $n=2$, $3$, $4$ e $8$ e relacione com a observação sobre funções periódicas da seção de comparação.\n\n### Respostas\n1.  $T_4\\approx1{,}896119$ (erro $0{,}1039$); $S_4\\approx2{,}004560$ (erro $0{,}0046$).\n\n2.  Trapézios: exata para $1$ e $x$ (dá $2$ e $2$); para $x^2$ dá $4\\ne\\frac83$. Simpson ($h=1$): $\\frac13(f(0)+4f(1)+f(2))$ dá $2$, $2$, $\\frac83$, $4$, exatos, e para $x^4$ dá $\\frac{20}{3}\\ne\\frac{32}{5}$.\n\n3.  \\(a\\) $\\frac{h^2}{12}\\cdot2\\le10^{-6}\\Rightarrow h\\le0{,}002449\\Rightarrow n=409$. (b) $\\frac{h^4}{180}\\cdot12\\le10^{-6}\\Rightarrow h\\le0{,}06223\\Rightarrow n\\ge16{,}07$, logo $n=18$ (par).\n\n4.  $S_6\\approx0{,}7468303915$, com erro $\\approx6{,}3\\times10^{-6}$, cerca de $2{,}2$ vezes menor que o da regra $3/8$ com o mesmo $n$ (compare com $\\frac{180}{80}=2{,}25$).\n\n5.  Trapézios: $1010$ m; Simpson $1/3$: $\\approx1017{,}3$ m; Simpson $3/8$: $\\approx1017{,}4$ m.\n\n6.  Por exemplo, $\\int_{x_0}^{x_3}L_0\\,dx=h\\int_0^3\\frac{(s-1)(s-2)(s-3)}{-6}\\,ds=\\frac{3h}{8}$ e $\\int_{x_0}^{x_3}L_1\\,dx=h\\int_0^3\\frac{s(s-2)(s-3)}{2}\\,ds=\\frac{9h}{8}$; os outros dois seguem por simetria.\n\n7.  $R_{0,0}=3$; $R_{1,0}=3{,}1$, $R_{1,1}=3{,}1333333$; $R_{2,0}=3{,}1311765$, $R_{2,1}=3{,}1415686$, $R_{2,2}=3{,}1421176$ (erro $5{,}3\\times10^{-4}$).\n\n8.  $G_2\\approx0{,}9984726$ (erro $1{,}5\\times10^{-3}$); $G_3\\approx1{,}0000081$ (erro $8{,}1\\times10^{-6}$).\n\n9.  $w_1=2$ e $w_1t_1=0$, logo $t_1=0$: $\\int_a^bf\\,dx\\approx(b-a)\\,f\\bigl(\\frac{a+b}{2}\\bigr)$, a regra do ponto médio, com grau de exatidão 1.\n\n10. $G_2=0{,}19\\overline{4}$ e o valor exato é $0{,}2$; pelo teorema, o erro é $\\frac{1\\cdot(2!)^4}{5\\,(4!)^3}\\cdot24=\\frac{1}{180}\\approx0{,}005556$, exatamente o observado (pois $f^{(4)}\\equiv24$ é constante).\n\n11. Não: as razões dos trapézios ficam entre $2{,}6$ e $2{,}8$, aproximando-se de $2^{1{,}5}\\approx2{,}83$ (o erro é proporcional a $h^{1{,}5}$), e $|I-R_{5,5}|\\approx3{,}8\\times10^{-4}$, muito pior que no exemplo. Como $f'(x)=\\frac{1}{2\\sqrt x}$ não é limitada perto de 0, a expansão de Euler-Maclaurin não vale e a extrapolação não elimina os termos certos.\n\n12. Com $n=2$ todos os nós caem nos zeros de $f$ e $T_2=0$ (os nós “não enxergam” a oscilação); a partir de $n=3$ obtém-se $T_n=\\frac12$, exato. Para funções periódicas integradas num período completo, os termos da expansão de Euler-Maclaurin se anulam, e a regra dos trapézios converge muito rapidamente, desde que haja nós suficientes por período."
+  }
+ ],
+ "secoes": [
+  [
+   "6.1",
+   "O problema da integração numérica"
+  ],
+  [
+   "6.2",
+   "Regra dos trapézios"
+  ],
+  [
+   "6.3",
+   "Regra 1/3 de Simpson"
+  ],
+  [
+   "6.4",
+   "Regra 3/8 de Simpson"
+  ],
+  [
+   "6.5",
+   "Fórmulas de Newton-Cotes: resumo"
+  ],
+  [
+   "6.6",
+   "Quantos subintervalos usar?"
+  ],
+  [
+   "6.7",
+   "Extrapolação de Richardson e método de Romberg"
+  ],
+  [
+   "6.8",
+   "Quadratura de Gauss-Legendre"
+  ],
+  [
+   "6.9",
+   "Comparação dos métodos"
+  ],
+  [
+   "6.10",
+   "Exercícios"
+  ]
+ ]
+}

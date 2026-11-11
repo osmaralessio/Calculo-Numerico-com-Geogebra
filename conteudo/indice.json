@@ -209,5 +209,52 @@
     "Exercícios"
    ]
   ]
+ },
+ {
+  "numero": 6,
+  "id": "integracao_numerica",
+  "titulo": "Integração numérica",
+  "secoes": [
+   [
+    "6.1",
+    "O problema da integração numérica"
+   ],
+   [
+    "6.2",
+    "Regra dos trapézios"
+   ],
+   [
+    "6.3",
+    "Regra 1/3 de Simpson"
+   ],
+   [
+    "6.4",
+    "Regra 3/8 de Simpson"
+   ],
+   [
+    "6.5",
+    "Fórmulas de Newton-Cotes: resumo"
+   ],
+   [
+    "6.6",
+    "Quantos subintervalos usar?"
+   ],
+   [
+    "6.7",
+    "Extrapolação de Richardson e método de Romberg"
+   ],
+   [
+    "6.8",
+    "Quadratura de Gauss-Legendre"
+   ],
+   [
+    "6.9",
+    "Comparação dos métodos"
+   ],
+   [
+    "6.10",
+    "Exercícios"
+   ]
+  ]
  }
 ]
