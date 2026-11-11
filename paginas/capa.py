@@ -12,7 +12,7 @@ with c1:
 with c2:
     st.title("Cálculo Numérico Interativo")
     st.markdown(
-        "##### Aritmética de ponto flutuante, zeros de funções, sistemas lineares, interpolação e ajuste de curvas com aplicativos no GeoGebra\n\n"
+        "##### Aritmética de ponto flutuante, zeros de funções, sistemas lineares, interpolação, ajuste de curvas e integração numérica com aplicativos no GeoGebra\n\n"
         "**Osmar Alessio**  \nUniversidade Federal do Triângulo Mineiro  \n"
         "Licenciatura em Matemática – ICENE  \nUberaba – MG, 2026"
     )
@@ -36,14 +36,16 @@ repetição. O Capítulo 3 trata dos sistemas lineares, com métodos diretos (el
 fatoração $LU$) e iterativos (Gauss-Jacobi e Gauss-Seidel). O Capítulo 4 trata da interpolação polinomial
 por três caminhos (sistema linear, Lagrange e Newton), que levam ao mesmo polinômio. O Capítulo 5 trata do
 ajuste de curvas pelo método dos mínimos quadrados, resolvido de forma direta (sistema normal) e iterativa
-(gradiente descendente). Cada capítulo termina com exercícios e respostas.
+(gradiente descendente). O Capítulo 6 trata da integração numérica: regras dos trapézios e de Simpson
+(simples e repetidas), extrapolação de Richardson e método de Romberg, e quadratura de Gauss-Legendre.
+Cada capítulo termina com exercícios e respostas.
 """
     )
 
 st.divider()
 st.subheader("Sumário", anchor=False)
-paginas = ["cap1", "cap2", "cap3", "cap4", "cap5"]
-cols = st.columns(5)
+paginas = ["cap1", "cap2", "cap3", "cap4", "cap5", "cap6"]
+cols = st.columns(3) + st.columns(3)
 for col, cap, pag in zip(cols, indice(), paginas):
     with col.container(border=True, height=330):
         st.markdown(f"**Capítulo {cap['numero']}**")
