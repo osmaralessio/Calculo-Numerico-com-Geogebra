@@ -47,6 +47,11 @@ NOMES = {
     "05_aproximacaoGDescCombFuncao.ggb": "Gradiente: combinação sem padronizar",
     "06_aproximacaoGDescCombFuncao_Escalonada.ggb": "Gradiente: combinação padronizada",
     "04_aproximacaoGDescCombFuncoespadronizada_03_07.ggb": "Gradiente: padronizada com volta",
+    "RegraTrapezios_repetida.ggb": "Regra dos trapézios repetida",
+    "RegraSimpson13_repetida.ggb": "Regra 1/3 de Simpson repetida",
+    "RegraSimpson38_repetida.ggb": "Regra 3/8 de Simpson repetida",
+    "MetodoRomberg.ggb": "Método de Romberg",
+    "QuadraturaGaussLegendre.ggb": "Quadratura de Gauss-Legendre",
 }
 
 LARGURA_COLUNA = 1080  # largura útil estimada da coluna de texto (px)
