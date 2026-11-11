@@ -33,6 +33,8 @@ CAPITULOS = [
     ("sistemas_lineares", "sistemas"),
     ("interpolacao", "interp"),
     ("ajuste_de_curvas", "ajuste"),
+    ("integracao_numerica", "integracao"),
+    ("edo", "edo"),
 ]
 
 MACROS = r"""
