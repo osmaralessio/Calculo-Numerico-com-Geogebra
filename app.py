@@ -58,6 +58,7 @@ paginas = {
     "Materiais": [
         st.Page("paginas/aplicativos.py", title="Todos os aplicativos", icon=":material/apps:", url_path="aplicativos"),
         st.Page("paginas/complementos.py", title="Textos complementares", icon=":material/description:", url_path="complementos"),
+        st.Page("paginas/referencias.py", title="Referências bibliográficas", icon=":material/menu_book:", url_path="referencias"),
     ],
 }
 
