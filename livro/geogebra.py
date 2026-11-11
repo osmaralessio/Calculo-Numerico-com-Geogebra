@@ -63,6 +63,12 @@ NOMES = {
 
 LARGURA_COLUNA = 1080  # largura útil estimada da coluna de texto (px)
 
+# Modo celular: em telas estreitas o aplicativo não é espremido até caber na largura;
+# ele abre neste tamanho (fração do original) dentro de uma moldura que rola para os lados.
+ESCALA_CELULAR = 0.70
+LIMITE_CELULAR = 700        # abaixo desta largura (px) liga o modo celular
+LIMITE_CELULAR_TOQUE = 900  # em telas de toque, liga abaixo desta largura (celular deitado)
+
 
 def nome_app(arquivo: str) -> str:
     return NOMES.get(arquivo, arquivo.removesuffix(".ggb").replace("_", " "))
@@ -116,20 +122,102 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
         "borderColor": "#FFFFFF",
     }
     html = f"""
-<div id="moldura" style="width:100%;height:{altura_iframe - 4}px;overflow:hidden;font-family:sans-serif">
-  <div id="ggb"></div>
-  <p id="aviso" style="display:none;color:#7a4b00;background:#fff4dc;padding:12px;border-radius:8px">
-    Não foi possível carregar o GeoGebra (é preciso conexão com a internet e acesso a geogebra.org).
-    Use o botão <b>Baixar o arquivo .ggb</b> e abra o arquivo no GeoGebra Classic.
-  </p>
+<style>
+  html, body {{ margin:0; padding:0; }}
+  #barra {{ display:none; align-items:center; gap:8px; height:46px; padding:0 2px;
+           font-family:sans-serif; font-size:14px; color:#1f2328; }}
+  #barra button {{ min-width:52px; height:40px; font-size:20px; border:1px solid #c9c4b5;
+                  border-radius:10px; background:#f3f1ea; color:#143c96; touch-action:manipulation; }}
+  #barra button#btTela {{ font-size:14px; padding:0 12px; margin-left:auto; }}
+  #barra span {{ flex:1; line-height:1.15; font-size:12.5px; color:#555; }}
+  #moldura.celular {{ overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; }}
+  #moldura:fullscreen {{ background:#fff; overflow:auto; }}
+</style>
+<div id="raiz">
+  <div id="barra">
+    <button id="btEsq" type="button" aria-label="Deslizar para a esquerda">◀</button>
+    <button id="btDir" type="button" aria-label="Deslizar para a direita">▶</button>
+    <span>Use ◀ ▶ para ver o resto do aplicativo.</span>
+    <button id="btTela" type="button">Tela cheia</button>
+  </div>
+  <div id="moldura" style="width:100%;height:{altura_iframe - 4}px;overflow:hidden;font-family:sans-serif">
+    <div id="ggb"></div>
+    <p id="aviso" style="display:none;color:#7a4b00;background:#fff4dc;padding:12px;border-radius:8px">
+      Não foi possível carregar o GeoGebra (é preciso conexão com a internet e acesso a geogebra.org).
+      Use o botão <b>Baixar o arquivo .ggb</b> e abra o arquivo no GeoGebra Classic.
+    </p>
+  </div>
 </div>
 <script>
   var P = {json.dumps(params)};
+  var W = {w}, H = {h}, ALT = {altura_iframe - 4}, BARRA = 50;
+
+  function ehCelular(larg) {{
+    var toque = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    return larg < {LIMITE_CELULAR} || (toque && larg < {LIMITE_CELULAR_TOQUE});
+  }}
+
+  // Tenta mudar a altura do quadro do Streamlit; devolve true se conseguiu.
+  function ajustarAltura(px) {{
+    try {{
+      var f = window.frameElement;
+      if (!f) return false;
+      f.style.height = px + 'px';
+      f.setAttribute('height', px);
+      return true;
+    }} catch (e) {{ return false; }}
+  }}
+
+  function telaCheia() {{
+    var alvos = [];
+    try {{ if (window.frameElement) alvos.push(window.frameElement); }} catch (e) {{}}
+    alvos.push(document.getElementById('raiz'));
+    for (var i = 0; i < alvos.length; i++) {{
+      var el = alvos[i];
+      var f = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (f) {{
+        try {{
+          var r = f.call(el);
+          if (r && r.catch) r.catch(function () {{}});
+          try {{ screen.orientation.lock('landscape').catch(function () {{}}); }} catch (e) {{}}
+          return;
+        }} catch (e) {{}}
+      }}
+    }}
+  }}
+
+  function modoCelular() {{
+    var mold = document.getElementById('moldura');
+    var barra = document.getElementById('barra');
+    var s = Math.min({ESCALA_CELULAR}, {escala_max});
+    var altApp = Math.ceil(H * s) + 4;
+    if (!ajustarAltura(altApp + BARRA + 8)) {{
+      // sem acesso ao quadro: encaixa o aplicativo na altura que já existe
+      altApp = ALT - BARRA;
+      s = Math.min(s, altApp / H);
+    }}
+    barra.style.display = 'flex';
+    mold.className = 'celular';
+    mold.style.height = altApp + 'px';
+    document.getElementById('ggb').style.width = Math.ceil(W * s) + 'px';
+    var passo = function () {{ return Math.max(120, mold.clientWidth * 0.7); }};
+    document.getElementById('btEsq').onclick = function () {{ mold.scrollBy({{left: -passo(), behavior: 'smooth'}}); }};
+    document.getElementById('btDir').onclick = function () {{ mold.scrollBy({{left: passo(), behavior: 'smooth'}}); }};
+    var podeTela = false;
+    try {{ podeTela = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled); }} catch (e) {{}}
+    if (podeTela) document.getElementById('btTela').onclick = telaCheia;
+    else document.getElementById('btTela').style.display = 'none';
+    P.enableShiftDragZoom = false;  // no toque, arrastar não move a janela gráfica por engano
+    return s;
+  }}
+
   function iniciar() {{
-    var W = {w}, H = {h};
     var larg = document.getElementById('moldura').clientWidth;
-    var alt = {altura_iframe - 4};
-    P.scale = Math.min({escala_max}, larg / W, alt / H);
+    if (ehCelular(larg)) {{
+      P.scale = modoCelular();
+    }} else {{
+      P.scale = Math.min({escala_max}, larg / W, ALT / H);
+    }}
     P.allowUpscale = P.scale > 1;
     new GGBApplet(P, true).inject('ggb');
   }}
