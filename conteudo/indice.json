@@ -256,5 +256,52 @@
     "Exercícios"
    ]
   ]
+ },
+ {
+  "numero": 7,
+  "id": "edo",
+  "titulo": "Soluções numéricas de equações diferenciais ordinárias",
+  "secoes": [
+   [
+    "7.1",
+    "Problemas de valor inicial"
+   ],
+   [
+    "7.2",
+    "Método de Euler"
+   ],
+   [
+    "7.3",
+    "Métodos de Runge-Kutta"
+   ],
+   [
+    "7.4",
+    "Ordem, custo e estabilidade"
+   ],
+   [
+    "7.5",
+    "Sistemas e equações de ordem superior"
+   ],
+   [
+    "7.6",
+    "Problemas de valor de contorno"
+   ],
+   [
+    "7.7",
+    "Método do tiro"
+   ],
+   [
+    "7.8",
+    "Método das diferenças finitas"
+   ],
+   [
+    "7.9",
+    "Comparação dos métodos"
+   ],
+   [
+    "7.10",
+    "Exercícios"
+   ]
+  ]
  }
 ]

@@ -1,0 +1,410 @@
+{
+ "numero": 7,
+ "id": "edo",
+ "titulo": "Soluções numéricas de equações diferenciais ordinárias",
+ "blocos": [
+  {
+   "tipo": "caixa",
+   "estilo": "como_usar",
+   "titulo": "Como usar os aplicativos deste capítulo",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Ao longo do capítulo, os quadros laranja *Atividade no GeoGebra* trazem o aplicativo, que abre aqui mesmo na página (botão **Abrir o aplicativo**):\n\n-   **Método de Euler**;\n\n-   **Runge-Kutta de 2ª ordem (Heun e ponto médio)**;\n\n-   **Runge-Kutta de 4ª ordem**;\n\n-   **Ordem dos métodos: Euler, Heun e RK4**;\n\n-   **Sistemas de EDOs com RK4**;\n\n-   **Método do tiro**;\n\n-   **Diferenças finitas para problemas de contorno**.\n\nOs quatro primeiros aplicativos começam com o problema $y'=y-x^2+1$, $y(0)=0{,}5$, que é o exemplo desenvolvido no texto. Em todos é possível digitar outra equação, mudar a condição inicial, o passo $h$ e o número de passos $n$, mostrar o campo de direções e usar o botão *Enquadrar o gráfico*. A janela da direita mostra as contas e tem barras de rolagem (vertical e horizontal). A curva verde de referência é calculada pelo próprio aplicativo com RK4 e um passo 40 vezes menor, o que basta para medir o erro dos métodos estudados."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 7.1 Problemas de valor inicial\n\nUma *equação diferencial ordinária* (EDO) de primeira ordem relaciona uma função desconhecida $y(x)$ com a sua derivada: $y'=f(x,y)$. Ela descreve como uma grandeza varia: o crescimento de uma população, o resfriamento de um corpo, a carga de um capacitor, a concentração de um medicamento no sangue. Uma EDO tem infinitas soluções; para escolher uma, fixamos o valor de $y$ num ponto."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "definicao",
+   "titulo": "Definição 7.1",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Um *problema de valor inicial* (PVI) de primeira ordem é \n\n$$\ny'=f(x,y),\\qquad y(x_0)=y_0,\n$$\n\n e uma solução no intervalo $[x_0,b]$ é uma função derivável $y(x)$ que satisfaz a equação em $[x_0,b]$ e a condição inicial."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 7.2 (Existência e unicidade)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $f$ é contínua em $D=\\{(x,y):x_0\\le x\\le b,\\ y\\in\\mathbb R\\}$ e satisfaz a *condição de Lipschitz* em $y$, \n\n$$\n|f(x,y_1)-f(x,y_2)|\\le L\\,|y_1-y_2|\\qquad\\text{para todos }(x,y_1),(x,y_2)\\in D,\n$$\n\n então o PVI tem uma única solução em $[x_0,b]$. A condição de Lipschitz vale, por exemplo, quando $\\partial f/\\partial y$ é contínua e limitada em $D$, com $L=\\max|\\partial f/\\partial y|$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Os métodos analíticos (variáveis separáveis, fator integrante, coeficientes constantes) só resolvem uma pequena parte das EDOs que aparecem nas aplicações. Um método numérico não produz uma fórmula para $y(x)$: ele produz *aproximações* $y_i\\approx y(x_i)$ numa malha de pontos $x_i=x_0+ih$, $i=0,1,\\dots,n$, em que $h$ é o *passo*.\n\n**Interpretação geométrica: o campo de direções.** A equação $y'=f(x,y)$ diz qual é a inclinação da solução que passa por cada ponto $(x,y)$ do plano. Desenhando pequenos segmentos com essas inclinações, obtemos o *campo de direções*; as soluções são as curvas que seguem o campo (Figura 7.1). Todos os métodos deste capítulo constroem a solução aproximada andando passo a passo “ao longo do campo”.\n\nUsaremos ao longo do capítulo o PVI \n\n$$\ny'=y-x^2+1,\\qquad y(0)=0{,}5,\\qquad x\\in[0,2],\n$$\n\n cuja solução exata, $y(x)=(x+1)^2-\\tfrac12e^x$, nos permite medir os erros. Em particular, $y(2)=9-\\tfrac12e^2=5{,}3054719505\\dots$\n\n## 7.2 Método de Euler\n\n### 7.2.1 Dedução\n\nPela fórmula de Taylor em torno de $x_i$, com $x_{i+1}=x_i+h$, \n\n$$\ny(x_{i+1})=y(x_i)+h\\,y'(x_i)+\\frac{h^2}{2}y''(\\xi_i)\n=y(x_i)+h\\,f\\bigl(x_i,y(x_i)\\bigr)+\\frac{h^2}{2}y''(\\xi_i).\n$$\n\n Desprezando o termo em $h^2$ e trocando $y(x_i)$ pela aproximação $y_i$, obtemos o *método de Euler*: \n\n$$\n\\boxed{\\;y_{i+1}=y_i+h\\,f(x_i,y_i),\\qquad x_{i+1}=x_i+h.\\;}\n$$\n\n Geometricamente, em cada passo seguimos a reta tangente à solução que passa por $(x_i,y_i)$, durante um intervalo de comprimento $h$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: o PVI do capítulo pelo método de Euler",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Com $h=0{,}2$ e $f(x,y)=y-x^2+1$: \n\n$$\n\\begin{aligned}\ny_1&=0{,}5+0{,}2\\,(0{,}5-0+1)=0{,}5+0{,}2\\cdot1{,}5=0{,}8,\\\\\ny_2&=0{,}8+0{,}2\\,(0{,}8-0{,}04+1)=0{,}8+0{,}2\\cdot1{,}76=1{,}152,\\\\\ny_3&=1{,}152+0{,}2\\,(1{,}152-0{,}16+1)=1{,}152+0{,}2\\cdot1{,}992=1{,}5504.\n\\end{aligned}\n$$\n\n Continuando até $x_{10}=2$:\n\n| $i$ |  $x_i$  |     $y_i$     |   $y(x_i)$    | $|y(x_i)-y_i|$ |\n|:---:|:-------:|:-------------:|:-------------:|:--------------:|\n|  0  |    0    |    $0{,}5$    |    $0{,}5$    |       0        |\n|  1  | $0{,}2$ |    $0{,}8$    | $0{,}8292986$ |   $0{,}0293$   |\n|  2  | $0{,}4$ |   $1{,}152$   | $1{,}2140877$ |   $0{,}0621$   |\n|  5  | $1{,}0$ | $2{,}4581760$ | $2{,}6408591$ |   $0{,}1827$   |\n| 10  | $2{,}0$ | $4{,}8657845$ | $5{,}3054720$ |   $0{,}4397$   |\n\nO erro cresce ao longo do intervalo: cada passo comete um pequeno erro e, além disso, parte de um ponto que já estava errado."
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap7_fig01.png",
+   "titulo": "",
+   "legenda": "**Figura 7.1.** Campo de direções de $y'=y-x^2+1$, a solução com $y(0)=0{,}5$ e a poligonal de Euler com $h=0{,}2$."
+  },
+  {
+   "tipo": "md",
+   "texto": "### 7.2.2 Erro local e erro global\n\nDois tipos de erro aparecem em qualquer método de passo a passo:\n\n-   o *erro local de truncamento* é o erro cometido num único passo, supondo que se parte do valor exato $y(x_i)$. No método de Euler, pela fórmula de Taylor acima, ele é $\\frac{h^2}{2}y''(\\xi_i)$, isto é, $O(h^2)$;\n\n-   o *erro global* $e_i=y(x_i)-y_i$ acumula os erros locais dos $i$ passos e a propagação dos erros anteriores.\n\nComo o número de passos até um ponto fixo $\\bar x$ é $(\\bar x-x_0)/h$, somar erros locais $O(h^2)$ dá um erro global $O(h)$. O teorema a seguir torna isso preciso."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 7.3 (Erro global do método de Euler)",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Suponha $f$ nas condições do Teorema 7.2, com constante de Lipschitz $L$, e $|y''(x)|\\le M$ em $[x_0,b]$. Então as aproximações de Euler satisfazem \n\n$$\n|y(x_i)-y_i|\\le\\frac{hM}{2L}\\Bigl(e^{L(x_i-x_0)}-1\\Bigr),\\qquad i=0,1,\\dots,n.\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "proof",
+   "titulo": "Ideia da demonstração",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Subtraindo $y_{i+1}=y_i+hf(x_i,y_i)$ de $y(x_{i+1})=y(x_i)+hf(x_i,y(x_i))+\\frac{h^2}{2}y''(\\xi_i)$ e usando a condição de Lipschitz, $|e_{i+1}|\\le(1+hL)|e_i|+\\frac{h^2M}{2}$. Por indução, $|e_i|\\le\\frac{hM}{2L}\\bigl((1+hL)^i-1\\bigr)$, e $(1+hL)^i\\le e^{ihL}=e^{L(x_i-x_0)}$."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "A cota é proporcional a $h$: o método de Euler é de *primeira ordem*. Dividir o passo por 2 divide o erro (aproximadamente) por 2; para ganhar uma casa decimal é preciso usar 10 vezes mais passos. O fator exponencial mostra também que o erro pode crescer muito em intervalos longos."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: método de Euler",
+   "arquivo": "MetodoEuler.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Abra o aplicativo. À esquerda ficam o campo de direções, a poligonal de Euler (vermelha) e a solução de referência (verde); à direita, a fórmula, o erro em $x_n$ e a tabela com $x_i$, $y_i$, $f(x_i,y_i)$, o valor de referência e o erro em cada ponto.\n\n1.  Confira os números do exemplo com $h=0{,}2$ e $n=10$.\n\n2.  Use $h=0{,}1$ e $n=20$ (mesmo ponto final $x_n=2$). O erro em $x_n$ caiu aproximadamente pela metade?\n\n3.  Marque *Soluções exatas que passam por cada ponto*. Cada passo de Euler leva a aproximação para uma curva solução diferente. Use essa figura para explicar a diferença entre erro local e erro global.\n\n4.  Digite $f(x,y)=-20y$, com $y_0=1$, $h=0{,}12$ e $n=10$. O que acontece? Repita com $h=0{,}04$. (Voltaremos a isso na Seção 7.4.)"
+    }
+   ],
+   "aplicativos": [
+    "MetodoEuler.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 7.3 Métodos de Runge-Kutta\n\n### 7.3.1 A ideia\n\nPara aumentar a ordem poderíamos usar mais termos da série de Taylor, $y_{i+1}=y_i+hy'_i+\\frac{h^2}{2}y''_i+\\cdots$ (*métodos de Taylor*), mas isso exige calcular derivadas de $f$: no exemplo, $y''=\\frac{d}{dx}(y-x^2+1)=y'-2x=y-x^2+1-2x$. Para uma $f$ complicada, essas contas são trabalhosas e precisam ser refeitas para cada problema.\n\nOs *métodos de Runge-Kutta* obtêm a mesma ordem usando apenas valores de $f$: em cada passo, $f$ é avaliada em alguns pontos de teste e as inclinações obtidas são combinadas com pesos escolhidos para que a fórmula concorde com a série de Taylor até a ordem desejada. Euler é o método de Runge-Kutta de ordem 1, com uma única inclinação.\n\n### 7.3.2 Métodos de segunda ordem\n\nProcuramos uma fórmula \n\n$$\ny_{i+1}=y_i+h\\,(a_1k_1+a_2k_2),\\qquad k_1=f(x_i,y_i),\\quad k_2=f(x_i+p\\,h,\\ y_i+p\\,h\\,k_1).\n$$\n\n Expandindo $k_2$ em série de Taylor em duas variáveis e comparando com $y(x_i+h)=y+hf+\\frac{h^2}{2}(f_x+f_yf)+O(h^3)$, obtemos as condições \n\n$$\na_1+a_2=1,\\qquad a_2\\,p=\\tfrac12.\n$$\n\n Há infinitas escolhas; as duas mais usadas são:\n\n-   **método de Heun** (ou *Euler melhorado*), com $a_1=a_2=\\frac12$ e $p=1$: \n\n$$\nk_1=f(x_i,y_i),\\quad k_2=f(x_i+h,\\ y_i+hk_1),\\quad y_{i+1}=y_i+\\frac h2(k_1+k_2);\n$$\n\n primeiro damos um passo de Euler (*previsão*) e depois corrigimos com a média das inclinações no início e no fim (*correção*). Se $f$ não depende de $y$, isso é exatamente a regra dos trapézios do Capítulo 6;\n\n-   **método do ponto médio**, com $a_1=0$, $a_2=1$ e $p=\\frac12$: \n\n$$\nk_1=f(x_i,y_i),\\quad k_2=f\\bigl(x_i+\\tfrac h2,\\ y_i+\\tfrac h2k_1\\bigr),\\quad y_{i+1}=y_i+h\\,k_2;\n$$\n\n usamos a inclinação estimada no meio do passo.\n\nAmbos têm erro local $O(h^3)$ e erro global $O(h^2)$, com duas avaliações de $f$ por passo."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: primeiro passo de Heun e do ponto médio",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Com $h=0{,}2$, $k_1=f(0;\\,0{,}5)=1{,}5$ nos dois métodos.\n\n**Heun:** o passo de Euler leva a $(0{,}2;\\ 0{,}8)$ e $k_2=f(0{,}2;\\,0{,}8)=0{,}8-0{,}04+1=1{,}76$; logo $y_1=0{,}5+0{,}1\\,(1{,}5+1{,}76)=0{,}826$.\n\n**Ponto médio:** o meio passo leva a $(0{,}1;\\ 0{,}65)$ e $k_2=f(0{,}1;\\,0{,}65)=0{,}65-0{,}01+1=1{,}64$; logo $y_1=0{,}5+0{,}2\\cdot1{,}64=0{,}828$.\n\nO valor exato é $y(0{,}2)=0{,}8292986$. Prosseguindo até $x=2$, Heun dá $y_{10}=5{,}2330546$ (erro $0{,}0724$) e o ponto médio dá $y_{10}=5{,}2903695$ (erro $0{,}0151$), contra $0{,}4397$ de Euler."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: Runge-Kutta de segunda ordem",
+   "arquivo": "RungeKutta2.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo mostra, para o passo escolhido no controle $kk$, a inclinação $k_1$ (laranja), o ponto de teste ($\\times$) e a inclinação $k_2$ (roxa). A caixa *Usar o ponto médio* troca Heun pelo método do ponto médio.\n\n1.  Confira o primeiro passo do exemplo nos dois métodos ($kk=0$).\n\n2.  Marque *Comparar com Euler* e compare as duas poligonais.\n\n3.  Com Heun, use $h=0{,}2$, $n=10$ e depois $h=0{,}1$, $n=20$. O erro em $x_n$ fica cerca de 4 vezes menor? Por quê?\n\n4.  Digite $f(x,y)=\\cos(x)$, com $x_0=0$ e $y_0=0$. Que regra de integração numérica o método de Heun está aplicando? E o método do ponto médio?"
+    }
+   ],
+   "aplicativos": [
+    "RungeKutta2.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "### 7.3.3 O método de Runge-Kutta de quarta ordem\n\nO método mais usado na prática combina quatro inclinações por passo: \n\n$$\n\\boxed{\\;\n\\begin{aligned}\nk_1&=f(x_i,\\,y_i), & k_2&=f\\bigl(x_i+\\tfrac h2,\\ y_i+\\tfrac h2k_1\\bigr),\\\\\nk_3&=f\\bigl(x_i+\\tfrac h2,\\ y_i+\\tfrac h2k_2\\bigr), & k_4&=f(x_i+h,\\ y_i+hk_3),\\\\\ny_{i+1}&=y_i+\\frac h6\\,(k_1+2k_2+2k_3+k_4). & &\n\\end{aligned}\\;}\n$$\n\n A inclinação usada é uma média ponderada: uma no início do passo, duas no meio (pesos maiores) e uma no fim. Quando $f$ só depende de $x$, $k_2=k_3=f(x_i+\\frac h2)$ e a fórmula fica $\\frac h6\\bigl[f(x_i)+4f(x_i+\\frac h2)+f(x_i+h)\\bigr]$: é a regra $1/3$ de Simpson no intervalo $[x_i,x_{i+1}]$. O RK4 tem erro local $O(h^5)$ e erro global $O(h^4)$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: o PVI do capítulo pelo RK4",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Primeiro passo, com $h=0{,}2$: \n\n$$\n\\begin{aligned}\nk_1&=f(0;\\ 0{,}5)=1{,}5,\\\\\nk_2&=f(0{,}1;\\ 0{,}5+0{,}1\\cdot1{,}5)=f(0{,}1;\\ 0{,}65)=1{,}64,\\\\\nk_3&=f(0{,}1;\\ 0{,}5+0{,}1\\cdot1{,}64)=f(0{,}1;\\ 0{,}664)=1{,}654,\\\\\nk_4&=f(0{,}2;\\ 0{,}5+0{,}2\\cdot1{,}654)=f(0{,}2;\\ 0{,}8308)=1{,}7908,\\\\\ny_1&=0{,}5+\\frac{0{,}2}{6}\\,(1{,}5+2\\cdot1{,}64+2\\cdot1{,}654+1{,}7908)=0{,}8292933,\n\\end{aligned}\n$$\n\n com erro $5{,}3\\times10^{-6}$. Ao final, em $x=2$, $y_{10}=5{,}3053630$, com erro $1{,}09\\times10^{-4}$, cerca de 4000 vezes menor que o de Euler com o mesmo passo."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: Runge-Kutta de quarta ordem",
+   "arquivo": "RungeKutta4.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Para o passo escolhido em $kk$, o gráfico mostra as quatro inclinações como pequenos segmentos desenhados nos pontos em que foram calculadas: $k_1$ no ponto atual, $k_2$ e $k_3$ no meio do passo e $k_4$ no fim. A tabela traz $k_1,\\dots,k_4$ e o erro de cada $y_i$.\n\n1.  Confira os números do primeiro passo ($kk=0$) e o valor final.\n\n2.  Compare os erros com $h=0{,}2$ ($n=10$) e $h=0{,}1$ ($n=20$). Qual é a razão?\n\n3.  Use $f(x,y)=\\cos(x)$, $x_0=0$, $y_0=0$, $h=0{,}5$ e $n=4$. Compare $y_4$ com $\\operatorname{sen}2=\\int_0^2\\cos x\\,dx$ e com a regra $1/3$ de Simpson com 8 subintervalos do Capítulo 6."
+    }
+   ],
+   "aplicativos": [
+    "RungeKutta4.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 7.4 Ordem, custo e estabilidade\n\n### 7.4.1 Ordem e custo\n\nDizemos que um método tem *ordem $p$* se o erro global em um ponto fixo é $O(h^p)$. Na prática, isso significa que, ao dividir $h$ por 2, o erro fica aproximadamente $2^p$ vezes menor. A tabela mostra os erros em $x=2$ para o problema do capítulo.\n\n| $n$ |    $h$    |      erro Euler       |  razão   |       erro Heun       |  razão   |       erro RK4        |  razão   |\n|:---:|:---------:|:---------------------:|:--------:|:---------------------:|:--------:|:---------------------:|:--------:|\n|  5  |  $0{,}4$  | $7{,}46\\times10^{-1}$ |          | $2{,}63\\times10^{-1}$ |          | $1{,}64\\times10^{-3}$ |          |\n| 10  |  $0{,}2$  | $4{,}40\\times10^{-1}$ | $1{,}70$ | $7{,}24\\times10^{-2}$ | $3{,}63$ | $1{,}09\\times10^{-4}$ | $15{,}1$ |\n| 20  |  $0{,}1$  | $2{,}42\\times10^{-1}$ | $1{,}82$ | $1{,}89\\times10^{-2}$ | $3{,}83$ | $6{,}99\\times10^{-6}$ | $15{,}6$ |\n| 40  | $0{,}05$  | $1{,}27\\times10^{-1}$ | $1{,}90$ | $4{,}82\\times10^{-3}$ | $3{,}92$ | $4{,}42\\times10^{-7}$ | $15{,}8$ |\n| 80  | $0{,}025$ | $6{,}55\\times10^{-2}$ | $1{,}95$ | $1{,}22\\times10^{-3}$ | $3{,}96$ | $2{,}78\\times10^{-8}$ | $15{,}9$ |\n\nAs razões se aproximam de $2$, $4$ e $16$, confirmando as ordens 1, 2 e 4. O custo de um passo é medido pelo número de avaliações de $f$: 1 para Euler, 2 para Heun e 4 para RK4. Mesmo assim o RK4 compensa: com $n=10$ (40 avaliações) ele é muito mais preciso que Euler com $n=80$ (80 avaliações)."
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap7_fig02.png",
+   "titulo": "",
+   "legenda": "**Figura 7.2.** Erro em $x=2$ em função do passo, em escala logarítmica. As inclinações das retas são as ordens dos métodos."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: ordem dos métodos",
+   "arquivo": "OrdemMetodosEDO.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo resolve o mesmo PVI por Euler, Heun e RK4 com $n_0$, $2n_0$, $4n_0$ e $8n_0$ passos e mostra os erros e as razões entre erros consecutivos.\n\n1.  Com $n_0=5$, confira a tabela acima.\n\n2.  Digite outro PVI, por exemplo $f(x,y)=-2xy$ com $y_0=1$ e $x_f=1$ (solução $e^{-x^2}$), e verifique que as razões continuam próximas de 2, 4 e 16.\n\n3.  Compare o erro do RK4 com $n_0$ passos e o de Euler com $8n_0$ passos (o dobro do custo do RK4). Qual método compensa?"
+    }
+   ],
+   "aplicativos": [
+    "OrdemMetodosEDO.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "### 7.4.2 Estabilidade\n\nUm método convergente pode, mesmo assim, dar resultados absurdos se o passo for grande demais. O exemplo-modelo é \n\n$$\ny'=\\lambda y,\\qquad y(0)=1,\\qquad \\lambda<0,\n$$\n\n cuja solução $y=e^{\\lambda x}$ decai para zero. Pelo método de Euler, $y_{i+1}=y_i+h\\lambda y_i=(1+h\\lambda)\\,y_i$, logo $y_i=(1+h\\lambda)^i$. A aproximação só decai se $|1+h\\lambda|<1$, isto é, \n\n$$\nh<\\frac{2}{|\\lambda|}.\n$$\n\n Com $\\lambda=-20$ e $h=0{,}12$, o fator é $1+h\\lambda=-1{,}4$ e as aproximações oscilam com amplitude crescente: $-1{,}4$; $1{,}96$; $-2{,}744$; $3{,}84$; $\\dots$ Com $h=0{,}04$, o fator é $0{,}2$ e elas decaem corretamente. Esse fenômeno se chama *instabilidade numérica*: não é um erro de arredondamento, é a própria fórmula que amplifica as perturbações.\n\nOs métodos de Runge-Kutta também têm um limite de estabilidade (para o RK4, $h|\\lambda|\\lesssim2{,}78$ quando $\\lambda$ é real e negativo). Problemas em que convivem escalas de tempo muito diferentes (variações rápidas que somem logo e variações lentas que interessam) são chamados *rígidos* (*stiff*); para eles usam-se métodos implícitos, que não têm essa restrição. Esse assunto vai além deste livro.\n\n## 7.5 Sistemas e equações de ordem superior\n\n### 7.5.1 Sistemas de EDOs\n\nMuitos modelos envolvem várias grandezas que interagem. Um sistema de duas EDOs de primeira ordem \n\n$$\n\\begin{cases}u'=F(x,u,v),& u(x_0)=u_0,\\\\ v'=G(x,u,v),& v(x_0)=v_0,\\end{cases}\n$$\n\n pode ser escrito na forma vetorial $\\mathbf Y'=\\mathbf F(x,\\mathbf Y)$, com $\\mathbf Y=(u,v)$ e $\\mathbf F=(F,G)$. Todos os métodos anteriores valem *sem mudança*, desde que as contas sejam feitas com vetores. Para o RK4: \n\n$$\n\\begin{aligned}\n\\mathbf K_1&=\\mathbf F(x_i,\\mathbf Y_i), &\n\\mathbf K_2&=\\mathbf F\\bigl(x_i+\\tfrac h2,\\ \\mathbf Y_i+\\tfrac h2\\mathbf K_1\\bigr),\\\\\n\\mathbf K_3&=\\mathbf F\\bigl(x_i+\\tfrac h2,\\ \\mathbf Y_i+\\tfrac h2\\mathbf K_2\\bigr), &\n\\mathbf K_4&=\\mathbf F(x_i+h,\\ \\mathbf Y_i+h\\mathbf K_3),\n\\end{aligned}\n$$\n\n \n\n$$\n\\mathbf Y_{i+1}=\\mathbf Y_i+\\frac h6\\,(\\mathbf K_1+2\\mathbf K_2+2\\mathbf K_3+\\mathbf K_4).\n$$\n\n Cuidado: $\\mathbf K_2$ só pode ser calculado depois de *todas* as componentes de $\\mathbf K_1$, e assim por diante.\n\n### 7.5.2 Equações de ordem superior\n\nUma EDO de segunda ordem $y''=g(x,y,y')$, com $y(x_0)=y_0$ e $y'(x_0)=z_0$, vira um sistema de primeira ordem com a troca $u=y$, $v=y'$: \n\n$$\nu'=v,\\qquad v'=g(x,u,v),\\qquad u(x_0)=y_0,\\quad v(x_0)=z_0.\n$$\n\n Por exemplo, o pêndulo simples $\\theta''=-\\frac gL\\operatorname{sen}\\theta$ vira $u'=v$, $v'=-\\frac gL\\operatorname{sen}u$. O mesmo vale para ordem $m$: introduzimos $y,y',\\dots,y^{(m-1)}$ como incógnitas."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: o modelo predador-presa de Lotka-Volterra",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Seja $u(t)$ uma população de presas e $v(t)$ uma população de predadores (em unidades convenientes), com \n\n$$\nu'=1{,}1\\,u-0{,}4\\,uv,\\qquad v'=0{,}1\\,uv-0{,}4\\,v,\\qquad u(0)=10,\\quad v(0)=5.\n$$\n\n Sem predadores, as presas cresceriam exponencialmente; sem presas, os predadores morreriam. Pode-se mostrar que as soluções são *periódicas*: no plano $(u,v)$ (o *plano de fase*) elas percorrem curvas fechadas. Com $h=0{,}1$, o RK4 reproduz a órbita fechada; o método de Euler, com o mesmo passo, gera uma espiral que se afasta dela (Figura 7.3): em $t=20$, Euler dá $(u,v)\\approx(3{,}32;\\ 0{,}50)$, enquanto o RK4 dá $(10{,}21;\\ 1{,}33)$. Mesmo com $h=0{,}01$, Euler ainda erra visivelmente."
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap7_fig03.png",
+   "titulo": "",
+   "legenda": "**Figura 7.3.** Plano de fase do modelo de Lotka-Volterra para $0\\le t\\le20$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: sistemas de EDOs com RK4",
+   "arquivo": "SistemasEDO_RK4.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo resolve um sistema autônomo $u'=F(u,v)$, $v'=G(u,v)$ pelo RK4. As funções $F$ e $G$ podem ser digitadas; a caixa *Gráficos u(t) e v(t)* troca o plano de fase pelos gráficos em função do tempo.\n\n1.  Confira os valores do exemplo em $t=20$ ($h=0{,}1$, $n=200$), com e sem *Comparar com Euler*.\n\n2.  Nos gráficos $u(t)$ e $v(t)$, estime o período das oscilações. Por que o pico dos predadores vem depois do pico das presas?\n\n3.  Digite $F=v$ e $G=-u$ (oscilador harmônico $y''=-y$), com $u_0=1$, $v_0=0$. A órbita exata é a circunferência $u^2+v^2=1$. Compare RK4 e Euler com $h=0{,}1$ e $n=200$.\n\n4.  Pêndulo: $F=v$ e $G=-9{,}8\\operatorname{sen}(u)$ (digite `-9.8 sin(u)`), com $u_0=1$ e $v_0=0$. Compare com a aproximação linear $G=-9{,}8u$."
+    }
+   ],
+   "aplicativos": [
+    "SistemasEDO_RK4.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 7.6 Problemas de valor de contorno\n\nNum PVI, todas as condições são dadas no mesmo ponto. Em muitos problemas, porém, as condições aparecem nos dois extremos de um intervalo: a deflexão de uma viga apoiada nas pontas, a temperatura numa barra com as extremidades mantidas a temperaturas fixas, a forma de um cabo suspenso."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "definicao",
+   "titulo": "Definição 7.4",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Um *problema de valor de contorno* (PVC) de segunda ordem é \n\n$$\ny''=g(x,y,y'),\\qquad a\\le x\\le b,\\qquad y(a)=\\alpha,\\quad y(b)=\\beta.\n$$"
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Diferentemente do PVI, um PVC pode não ter solução ou ter infinitas: $y''=-y$, $y(0)=0$, $y(\\pi)=1$ não tem solução (todas as soluções com $y(0)=0$ são $c\\operatorname{sen}x$ e valem 0 em $\\pi$), enquanto $y''=-y$, $y(0)=0$, $y(\\pi)=0$ tem infinitas. Para o caso linear há um resultado simples:"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "teorema",
+   "titulo": "Teorema 7.5",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $p$, $q$ e $r$ são contínuas em $[a,b]$ e $q(x)>0$ em $[a,b]$, o PVC linear \n\n$$\ny''=p(x)\\,y'+q(x)\\,y+r(x),\\qquad y(a)=\\alpha,\\quad y(b)=\\beta,\n$$\n\n tem uma única solução."
+    }
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "Estudaremos dois métodos: o *método do tiro*, que transforma o PVC em PVIs (e reaproveita o RK4), e o *método das diferenças finitas*, que transforma o PVC num sistema linear (e reaproveita o Capítulo 3).\n\n## 7.7 Método do tiro\n\n### 7.7.1 A ideia\n\nSe conhecêssemos $y'(a)$, o PVC seria um PVI. O método do tiro “chuta” esse valor: para cada $s$, resolvemos \n\n$$\ny''=g(x,y,y'),\\qquad y(a)=\\alpha,\\qquad y'(a)=s,\n$$\n\n por RK4 (como sistema de primeira ordem) e olhamos onde a solução, que chamamos $y(x;s)$, chega em $x=b$. Como um canhão que corrige a inclinação depois de cada tiro, ajustamos $s$ até acertar o alvo $\\beta$. Em termos do Capítulo 2, procuramos um zero da função \n\n$$\n\\phi(s)=y(b;s)-\\beta.\n$$\n\n Cada avaliação de $\\phi$ exige resolver um PVI inteiro, e não temos uma fórmula para $\\phi'(s)$; por isso o **método da secante** é a escolha natural: \n\n$$\ns_{k+1}=s_k-\\phi(s_k)\\,\\frac{s_k-s_{k-1}}{\\phi(s_k)-\\phi(s_{k-1})}.\n$$"
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se a EDO é *linear*, $y(b;s)$ é uma função afim de $s$ (combinação de duas soluções, por superposição). Então $\\phi$ é uma reta e a secante encontra o zero exatamente no primeiro passo: bastam dois tiros e uma combinação."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: um PVC não linear",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Considere \n\n$$\ny''=\\frac{1}{8}\\bigl(32+2x^3-y\\,y'\\bigr),\\qquad 1\\le x\\le3,\\qquad y(1)=17,\\quad y(3)=\\tfrac{43}{3},\n$$\n\n cuja solução exata é $y=x^2+\\frac{16}{x}$ (assim, $y'(1)=-14$). Usando RK4 com $h=0{,}1$ (20 passos) em cada tiro, os chutes $s_0=-1{,}4$ e $s_1=s_0+1=-0{,}4$ e a secante:\n\n| $k$ |           $s_k$ |     $y(3;s_k)$ |           $\\phi(s_k)$ |\n|:---:|----------------:|---------------:|----------------------:|\n|  0  |        $-1{,}4$ | $20{,}4518393$ |              $6{,}12$ |\n|  1  |        $-0{,}4$ | $20{,}8582730$ |              $6{,}52$ |\n|  2  | $-16{,}4541312$ | $12{,}8171044$ |             $-1{,}52$ |\n|  3  | $-13{,}4269919$ | $14{,}6667588$ |  $3{,}3\\times10^{-1}$ |\n|  4  | $-13{,}9726751$ | $14{,}3495052$ |  $1{,}6\\times10^{-2}$ |\n|  5  | $-14{,}0004910$ | $14{,}3331574$ | $-1{,}8\\times10^{-4}$ |\n|  6  | $-14{,}0001918$ | $14{,}3333334$ |  $9{,}2\\times10^{-8}$ |\n|  7  | $-14{,}0001919$ | $14{,}3333333$ |     $5\\times10^{-13}$ |\n\nO valor final de $s$ difere de $-14$ em $2\\times10^{-4}$: o que resta é o erro do RK4 com $h=0{,}1$, e não o da secante. Com esse $s$, o erro máximo da solução em $[1,3]$ é da ordem de $10^{-4}$."
+    }
+   ]
+  },
+  {
+   "tipo": "figura",
+   "arquivo": "cap7_fig04.png",
+   "titulo": "",
+   "legenda": "**Figura 7.4.** Método do tiro: as soluções dos PVIs com $y'(1)=s_k$. O alvo é o ponto $(3,\\frac{43}{3})$."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: método do tiro",
+   "arquivo": "MetodoTiro.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo resolve cada tiro por RK4 (com $z$ representando $y'$ no campo da função) e faz sete iterações da secante. O controle $kk$ escolhe quantos tiros aparecem no gráfico.\n\n1.  Confira a tabela do exemplo e o erro da solução final em relação à exata.\n\n2.  Mude o chute $s_0$ para $-20$ e para $10$. A secante ainda converge? Em quantas iterações?\n\n3.  Aumente $n$ para 40. O $s$ final fica mais perto de $-14$? Por quê?\n\n4.  PVC linear: digite $g=4(y-x)$, $a=0$, $b=1$, $y(a)=0$, $y(b)=2$, a solução exata $y=x+\\operatorname{senh}(2x)/\\operatorname{senh}(2)$ (digite `x + sinh(2x)/sinh(2)`) e $s_0=0$. Confirme que a secante acerta já em $s_2$."
+    }
+   ],
+   "aplicativos": [
+    "MetodoTiro.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 7.8 Método das diferenças finitas\n\n### 7.8.1 Aproximação das derivadas\n\nDividimos $[a,b]$ em $N+1$ subintervalos de comprimento $h=\\frac{b-a}{N+1}$, com nós $x_i=a+ih$, $i=0,1,\\dots,N+1$; os nós $x_1,\\dots,x_N$ são os *pontos internos*. Pela fórmula de Taylor, \n\n$$\ny(x_{i\\pm1})=y(x_i)\\pm h\\,y'(x_i)+\\frac{h^2}{2}y''(x_i)\\pm\\frac{h^3}{6}y'''(x_i)+\\frac{h^4}{24}y^{(4)}(\\xi_\\pm).\n$$\n\n Somando e subtraindo as duas expansões, obtemos as *diferenças centradas* \n\n$$\ny''(x_i)=\\frac{y(x_{i+1})-2y(x_i)+y(x_{i-1})}{h^2}+O(h^2),\\qquad\ny'(x_i)=\\frac{y(x_{i+1})-y(x_{i-1})}{2h}+O(h^2).\n$$\n\n### 7.8.2 O sistema linear\n\nPara o PVC linear $y''=p(x)y'+q(x)y+r(x)$, $y(a)=\\alpha$, $y(b)=\\beta$, trocamos as derivadas pelas diferenças em cada ponto interno e $y(x_i)$ pela incógnita $w_i$ ($w_0=\\alpha$, $w_{N+1}=\\beta$): \n\n$$\n\\frac{w_{i+1}-2w_i+w_{i-1}}{h^2}=p_i\\,\\frac{w_{i+1}-w_{i-1}}{2h}+q_i\\,w_i+r_i,\n$$\n\n com $p_i=p(x_i)$ etc. Multiplicando por $-h^2$ e agrupando: \n\n$$\n\\boxed{\\;\\Bigl(-1-\\frac h2p_i\\Bigr)w_{i-1}+\\bigl(2+h^2q_i\\bigr)w_i+\\Bigl(-1+\\frac h2p_i\\Bigr)w_{i+1}=-h^2r_i,\\qquad i=1,\\dots,N.\\;}\n$$\n\n Na primeira e na última equação, $w_0=\\alpha$ e $w_{N+1}=\\beta$ são conhecidos e passam para o segundo membro. O resultado é um sistema $N\\times N$ *tridiagonal*, que pode ser resolvido por eliminação de Gauss sem trocas de linhas e com custo proporcional a $N$ (não a $N^3$)."
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "observacao",
+   "titulo": "Observação",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Se $q(x)\\ge0$ e $h\\,|p(x)|\\le2$, a matriz é diagonalmente dominante: o sistema tem solução única e os métodos de Gauss-Jacobi e Gauss-Seidel do Capítulo 3 convergem. O erro do método é $O(h^2)$, como o das diferenças centradas: dobrar o número de subintervalos divide o erro por 4."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "exemplo",
+   "titulo": "Exemplo: $y''=4(y-x)$, $y(0)=0$, $y(1)=2$",
+   "arquivo": "",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "Aqui $p=0$, $q=4$ e $r=-4x$; a solução exata é $y=x+\\dfrac{\\operatorname{senh}(2x)}{\\operatorname{senh}2}$. Com $N=3$ pontos internos, $h=0{,}25$ e $2+h^2q=2{,}25$; os segundos membros são $-h^2r_i=0{,}25\\,x_i$, isto é, $0{,}0625$; $0{,}125$; $0{,}1875$, e a última equação recebe $+\\beta=2$: \n\n$$\n\\begin{pmatrix}2{,}25&-1&0\\\\-1&2{,}25&-1\\\\0&-1&2{,}25\\end{pmatrix}\n\\begin{pmatrix}w_1\\\\w_2\\\\w_3\\end{pmatrix}=\n\\begin{pmatrix}0{,}0625\\\\0{,}125\\\\2{,}1875\\end{pmatrix}.\n$$\n\n A solução é $w_1=0{,}3951247$, $w_2=0{,}8265306$, $w_3=1{,}3395692$; os valores exatos são $0{,}3936767$, $0{,}8240271$ e $1{,}3370861$, com erro máximo $2{,}5\\times10^{-3}$. Aumentando $N$:\n\n| $N$ |   $h$    |      erro máximo      |\n|:---:|:--------:|:---------------------:|\n|  3  | $0{,}25$ | $2{,}50\\times10^{-3}$ |\n|  4  | $0{,}2$  | $1{,}73\\times10^{-3}$ |\n|  9  | $0{,}1$  | $4{,}39\\times10^{-4}$ |\n| 19  | $0{,}05$ | $1{,}10\\times10^{-4}$ |\n\nDe $h=0{,}1$ para $h=0{,}05$, o erro cai pelo fator $4$, como previsto."
+    }
+   ]
+  },
+  {
+   "tipo": "caixa",
+   "estilo": "atividade",
+   "titulo": "Atividade no GeoGebra: diferenças finitas para PVC linear",
+   "arquivo": "DiferencasFinitasPVC.ggb",
+   "filhos": [
+    {
+     "tipo": "md",
+     "texto": "O aplicativo monta e resolve o sistema tridiagonal. À direita aparecem a matriz aumentada (para $N\\le8$), a tabela com $x_i$, $w_i$, a solução exata e o erro, e o erro máximo.\n\n1.  Com $N=3$, confira a matriz e a solução do exemplo.\n\n2.  Faça $N=4,9,19$ e confira a tabela de erros.\n\n3.  Digite $p(x)=-2/x$, $q(x)=2/x^2$, $r(x)=\\operatorname{sen}(\\ln x)/x^2$, $a=1$, $b=2$, $y(a)=1$, $y(b)=2$ (desmarque *Mostrar a solução exata*, que se refere ao exemplo anterior). Como as entradas da matriz mudam de uma linha para outra?\n\n4.  Compare com o método do tiro aplicado ao mesmo PVC linear (atividade anterior, item 4). Qual método dá menor erro com $h=0{,}1$?"
+    }
+   ],
+   "aplicativos": [
+    "DiferencasFinitasPVC.ggb"
+   ]
+  },
+  {
+   "tipo": "md",
+   "texto": "## 7.9 Comparação dos métodos\n\n| método             | ordem | custo                        | observações                                              |\n|:-------------------|:-----:|:-----------------------------|:---------------------------------------------------------|\n| Euler              |   1   | 1 avaliação de $f$ por passo | simples; base para entender os outros; exige $h$ pequeno |\n| Heun / ponto médio |   2   | 2 avaliações por passo       | previsão e correção                                      |\n| RK4                |   4   | 4 avaliações por passo       | o método de uso geral mais popular                       |\n| tiro (com RK4)     |   4   | um PVI por iteração          | reaproveita métodos de PVI; pode divergir                |\n| diferenças finitas |   2   | um sistema tridiagonal       | robusto para PVC lineares                                |\n\n**Em resumo.**\n\n-   Para **PVI**, os métodos de Runge-Kutta são de passo único (só usam $y_i$ para calcular $y_{i+1}$), fáceis de programar e de mudar de passo; o RK4 é o padrão em problemas não rígidos. Programas profissionais usam pares de Runge-Kutta de ordens diferentes para estimar o erro e ajustar $h$ automaticamente (passo adaptativo).\n\n-   A **estabilidade** limita o passo, independentemente da precisão desejada. Para problemas rígidos são necessários métodos implícitos.\n\n-   Para **PVC**, o método do tiro aproveita toda a precisão do RK4, mas pode ser sensível ao chute inicial e ao crescimento das soluções; as diferenças finitas levam a sistemas lineares bem comportados e se estendem naturalmente às equações diferenciais parciais.\n\n-   Tudo depende dos capítulos anteriores: Taylor e erros (Capítulo 1), secante (Capítulo 2), sistemas tridiagonais (Capítulo 3) e regras de integração (Capítulo 6).\n\n## 7.10 Exercícios\n\n1.  Aplique o método de Euler com $h=0{,}1$ ao PVI $y'=-2xy$, $y(0)=1$, até $x=0{,}5$, e compare com a solução exata $y=e^{-x^2}$.\n\n2.  Para o mesmo PVI, faça dois passos ($h=0{,}1$) pelo método de Heun e pelo RK4.\n\n3.  Mostre que, quando $f(x,y)=g(x)$ não depende de $y$, um passo do RK4 é a regra $1/3$ de Simpson e um passo de Heun é a regra dos trapézios no intervalo $[x_i,x_{i+1}]$.\n\n4.  Qual é o maior passo $h$ para o qual o método de Euler aplicado a $y'=-50y$, $y(0)=1$, produz aproximações que decaem para zero?\n\n5.  Escreva como sistema de primeira ordem: (a) $y''+4y'+3y=0$; (b) o pêndulo amortecido $\\theta''+0{,}5\\,\\theta'+9{,}8\\operatorname{sen}\\theta=0$; (c) $y'''=x\\,y-y'$.\n\n6.  Faça um passo do RK4 com $h=0{,}1$ para o oscilador $u'=v$, $v'=-u$, $u(0)=1$, $v(0)=0$, e compare com $(\\cos0{,}1;\\ -\\operatorname{sen}0{,}1)$.\n\n7.  Verifique que $y=(x+1)^2-\\tfrac12e^x$ é solução do PVI $y'=y-x^2+1$, $y(0)=0{,}5$.\n\n8.  Use diferenças finitas com $N=1$ (um único ponto interno) para o PVC $y''=4(y-x)$, $y(0)=0$, $y(1)=2$, e compare $w_1$ com $y(0{,}5)$.\n\n9.  Para o PVC linear $y''=4(y-x)$, $y(0)=0$, $y(1)=2$, determine o valor exato de $y'(0)$ e explique por que o método do tiro com a secante o encontra (a menos do erro do RK4) já em $s_2$.\n\n10. **(GeoGebra)** No aplicativo de Euler, use $f(x,y)=-20y$, $y_0=1$, $n=10$ e $h=0{,}1$. Explique o resultado usando o fator $1+h\\lambda$.\n\n11. **(GeoGebra)** No aplicativo de sistemas, use o modelo de Lotka-Volterra com Euler e $h=0{,}1$, $n=200$ e depois $h=0{,}01$, $n=2000$. O ponto final de Euler se aproxima do RK4? Com que ordem?\n\n12. **(GeoGebra)** No aplicativo de diferenças finitas, faça $N=4$, $9$ e $19$ e calcule as razões entre os erros máximos. Que ordem elas indicam?\n\n### Respostas\n1.  $y_1=1$; $y_2=0{,}98$; $y_3=0{,}9408$; $y_4=0{,}884352$; $y_5=0{,}8136038$; exato $e^{-0{,}25}=0{,}7788008$ (erro $0{,}035$).\n\n2.  Heun: $y_1=0{,}99$, $y_2=0{,}960696$. RK4: $y_1=0{,}9900498$ (erro $4\\times10^{-10}$), $y_2=0{,}9607894$ (erro $4\\times10^{-9}$); exatos $0{,}9900498$ e $0{,}9607894$.\n\n3.  Com $f=g(x)$: $k_1=g(x_i)$, $k_2=k_3=g(x_i+\\frac h2)$, $k_4=g(x_i+h)$, logo $y_{i+1}-y_i=\\frac h6[g(x_i)+4g(x_i+\\frac h2)+g(x_{i+1})]$, a regra $1/3$ com espaçamento $\\frac h2$. Em Heun, $k_1=g(x_i)$ e $k_2=g(x_i+h)$, logo $\\frac h2(k_1+k_2)$ é o trapézio.\n\n4.  $|1-50h|<1\\iff h<0{,}04$.\n\n5.  \\(a\\) $u'=v$, $v'=-4v-3u$. (b) $u'=v$, $v'=-0{,}5v-9{,}8\\operatorname{sen}u$. (c) $u'=v$, $v'=w$, $w'=xu-v$.\n\n6.  $(0{,}99500417;\\ -0{,}09983333)$; exato $(0{,}99500417;\\ -0{,}09983342)$.\n\n7.  $y'=2(x+1)-\\frac12e^x$ e $y-x^2+1=2x+2-\\frac12e^x$; além disso, $y(0)=1-\\frac12=0{,}5$.\n\n8.  $h=0{,}5$: $(2+0{,}25\\cdot4)\\,w_1=0{,}25\\cdot0{,}5\\cdot4+0+2$, isto é, $3w_1=2{,}5$, logo $w_1=0{,}8333$; o exato é $0{,}8240$ (erro $0{,}0093$).\n\n9.  $y'(0)=1+\\dfrac{2}{\\operatorname{senh}2}\\approx1{,}5514411$. A EDO é linear, logo $\\phi(s)$ é afim e a secante dá o zero exato de $\\phi$ no primeiro passo.\n\n10. $1+h\\lambda=1-20\\cdot0{,}1=-1$: as aproximações alternam entre $-1$ e $1$ e não decaem (limite da estabilidade, $h=2/|\\lambda|$).\n\n11. Com $h=0{,}1$, Euler termina em $(3{,}32;\\ 0{,}50)$; com $h=0{,}01$, em $(9{,}74;\\ 1{,}20)$, mais perto do RK4 $(10{,}21;\\ 1{,}33)$: a distância ao ponto do RK4 cai de cerca de $6{,}9$ para $0{,}5$. Mesmo com 10 vezes mais passos, Euler continua bem menos preciso que o RK4 com $h=0{,}1$.\n\n12. As razões ficam perto de $1{,}73\\times10^{-3}/4{,}39\\times10^{-4}\\approx3{,}9$ e $4{,}39\\times10^{-4}/1{,}10\\times10^{-4}\\approx4{,}0$ (o passo cai à metade): ordem 2."
+  }
+ ],
+ "secoes": [
+  [
+   "7.1",
+   "Problemas de valor inicial"
+  ],
+  [
+   "7.2",
+   "Método de Euler"
+  ],
+  [
+   "7.3",
+   "Métodos de Runge-Kutta"
+  ],
+  [
+   "7.4",
+   "Ordem, custo e estabilidade"
+  ],
+  [
+   "7.5",
+   "Sistemas e equações de ordem superior"
+  ],
+  [
+   "7.6",
+   "Problemas de valor de contorno"
+  ],
+  [
+   "7.7",
+   "Método do tiro"
+  ],
+  [
+   "7.8",
+   "Método das diferenças finitas"
+  ],
+  [
+   "7.9",
+   "Comparação dos métodos"
+  ],
+  [
+   "7.10",
+   "Exercícios"
+  ]
+ ]
+}
