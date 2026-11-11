@@ -133,17 +133,19 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
   #barra button:disabled {{ opacity:.4; }}
   #barra #zoomTxt {{ min-width:38px; text-align:center; font-size:13px; color:#555; }}
   #barra #btTela {{ margin-left:auto; display:flex; align-items:center; justify-content:center; }}
-  #barra .sep {{ width:2px; }}
-  #moldura.celular {{ overflow:auto; -webkit-overflow-scrolling:touch; }}
+  #barra #btRolar {{ font-size:15px; padding:0 10px; }}
+  #barra #btRolar.ativo {{ background:#143c96; color:#fff; border-color:#143c96; }}
+  #barra #dica {{ font-size:11.5px; color:#666; line-height:1.1; max-width:82px; }}
+  #moldura.celular {{ position:relative; overflow:auto; -webkit-overflow-scrolling:touch; }}
+  #veu {{ display:none; position:absolute; left:0; top:0; z-index:50; background:rgba(20,60,150,0.04);
+         touch-action:none; }}
+  #veu.ativo {{ display:block; }}
   #moldura:fullscreen {{ background:#fff; overflow:auto; }}
 </style>
 <div id="raiz">
   <div id="barra">
-    <button id="btEsq" type="button" aria-label="Deslizar para a esquerda" title="Deslizar para a esquerda">◀</button>
-    <button id="btCima" type="button" aria-label="Subir" title="Subir">▲</button>
-    <button id="btBaixo" type="button" aria-label="Descer" title="Descer">▼</button>
-    <button id="btDir" type="button" aria-label="Deslizar para a direita" title="Deslizar para a direita">▶</button>
-    <span class="sep"></span>
+    <button id="btRolar" type="button" aria-pressed="false" title="Ligado: um dedo rola o aplicativo. Desligado: um dedo usa o aplicativo.">✋ Rolar</button>
+    <span id="dica">2 dedos também rolam</span>
     <button id="btMenos" type="button" aria-label="Diminuir" title="Diminuir o aplicativo">−</button>
     <span id="zoomTxt">70%</span>
     <button id="btMais" type="button" aria-label="Aumentar" title="Aumentar o aplicativo">+</button>
@@ -151,6 +153,7 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
   </div>
   <div id="moldura" style="width:100%;height:{altura_iframe - 4}px;overflow:hidden;font-family:sans-serif">
     <div id="ggb"></div>
+    <div id="veu"></div>
     <p id="aviso" style="display:none;color:#7a4b00;background:#fff4dc;padding:12px;border-radius:8px">
       Não foi possível carregar o GeoGebra (é preciso conexão com a internet e acesso a geogebra.org).
       Use o botão <b>Baixar o arquivo .ggb</b> e abra o arquivo no GeoGebra Classic.
@@ -219,6 +222,9 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
     if (!ajustarAltura(altApp + barra + 8)) altApp = Math.min(altApp, ALT - barra);
     mold.style.height = altApp + 'px';
     document.getElementById('ggb').style.width = Math.ceil(W * s) + 'px';
+    var veu = document.getElementById('veu');
+    veu.style.width = Math.ceil(W * s) + 'px';
+    veu.style.height = Math.ceil(H * s) + 'px';
     document.getElementById('zoomTxt').textContent = Math.round(s * 100) + '%';
     document.getElementById('btMenos').disabled = s <= ZOOMS[0] + 1e-9;
     document.getElementById('btMais').disabled = s >= ZOOMS[ZOOMS.length - 1] - 1e-9;
@@ -269,18 +275,82 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
     refazer();
   }}
 
+  // Dois dedos arrastando sobre o aplicativo rolam a moldura (o GeoGebra não recebe esse gesto).
+  function ativarDoisDedos(mold) {{
+    var ativo = false, x0 = 0, y0 = 0, sl = 0, st = 0;
+    function meio(ev) {{
+      var a = ev.touches[0], b = ev.touches[1];
+      return [(a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2];
+    }}
+    mold.addEventListener('touchstart', function (ev) {{
+      if (ev.touches.length >= 2) {{
+        ativo = true; var m = meio(ev); x0 = m[0]; y0 = m[1]; sl = mold.scrollLeft; st = mold.scrollTop;
+        ev.stopPropagation(); ev.preventDefault();
+      }}
+    }}, {{capture: true, passive: false}});
+    mold.addEventListener('touchmove', function (ev) {{
+      if (ativo && ev.touches.length >= 2) {{
+        var m = meio(ev);
+        mold.scrollLeft = sl - (m[0] - x0);
+        mold.scrollTop = st - (m[1] - y0);
+        ev.stopPropagation(); ev.preventDefault();
+      }}
+    }}, {{capture: true, passive: false}});
+    var fim = function (ev) {{ if (ativo) {{ if (ev.touches.length === 0) ativo = false; ev.stopPropagation(); }} }};
+    mold.addEventListener('touchend', fim, {{capture: true}});
+    mold.addEventListener('touchcancel', fim, {{capture: true}});
+    // Se o GeoGebra usar "pointer events", bloqueia o movimento enquanto há dois dedos.
+    ['pointermove', 'pointerdown'].forEach(function (tipo) {{
+      mold.addEventListener(tipo, function (ev) {{ if (ativo && ev.pointerType === 'touch') ev.stopPropagation(); }}, {{capture: true}});
+    }});
+  }}
+
+  // Com o véu ligado, um dedo arrasta a moldura (com um pouco de inércia ao soltar).
+  function ativarUmDedo(mold, veu) {{
+    var x = 0, y = 0, vx = 0, vy = 0, t = 0, anim = null;
+    veu.addEventListener('touchstart', function (ev) {{
+      if (anim) cancelAnimationFrame(anim);
+      var p = ev.touches[0]; x = p.clientX; y = p.clientY; vx = vy = 0; t = Date.now();
+      ev.preventDefault();
+    }}, {{passive: false}});
+    veu.addEventListener('touchmove', function (ev) {{
+      if (ev.touches.length !== 1) return;
+      var p = ev.touches[0], dx = p.clientX - x, dy = p.clientY - y, agora = Date.now(), dt = Math.max(1, agora - t);
+      mold.scrollLeft -= dx; mold.scrollTop -= dy;
+      vx = 0.8 * (dx / dt) + 0.2 * vx; vy = 0.8 * (dy / dt) + 0.2 * vy;
+      x = p.clientX; y = p.clientY; t = agora;
+      ev.preventDefault();
+    }}, {{passive: false}});
+    veu.addEventListener('touchend', function () {{
+      var ult = Date.now();
+      function passo() {{
+        var agora = Date.now(), dt = agora - ult; ult = agora;
+        vx *= 0.94; vy *= 0.94;
+        mold.scrollLeft -= vx * dt; mold.scrollTop -= vy * dt;
+        if (Math.abs(vx) > 0.02 || Math.abs(vy) > 0.02) anim = requestAnimationFrame(passo);
+      }}
+      if (Date.now() - t < 80) anim = requestAnimationFrame(passo);
+    }});
+  }}
+
   function modoCelular() {{
     var mold = document.getElementById('moldura');
     document.getElementById('barra').style.display = 'flex';
     mold.className = 'celular';
     var s = lerZoom();
     dimensionar(s);
-    var passo = function () {{ return Math.max(120, mold.clientWidth * 0.7); }};
-    document.getElementById('btEsq').onclick = function () {{ mold.scrollBy({{left: -passo(), behavior: 'smooth'}}); }};
-    document.getElementById('btDir').onclick = function () {{ mold.scrollBy({{left: passo(), behavior: 'smooth'}}); }};
-    var passoV = function () {{ return Math.max(100, mold.clientHeight * 0.6); }};
-    document.getElementById('btCima').onclick = function () {{ mold.scrollBy({{top: -passoV(), behavior: 'smooth'}}); }};
-    document.getElementById('btBaixo').onclick = function () {{ mold.scrollBy({{top: passoV(), behavior: 'smooth'}}); }};
+    // Botão ✋ Rolar: liga um "véu" transparente sobre o aplicativo; com ele, um dedo rola
+    // a moldura com a rolagem natural do celular. Desligado, o toque volta para o GeoGebra.
+    var bt = document.getElementById('btRolar'), veu = document.getElementById('veu');
+    bt.onclick = function () {{
+      var on = !veu.classList.contains('ativo');
+      veu.classList.toggle('ativo', on);
+      bt.classList.toggle('ativo', on);
+      bt.setAttribute('aria-pressed', on ? 'true' : 'false');
+      bt.textContent = on ? '✋ Rolando' : '✋ Rolar';
+    }};
+    ativarDoisDedos(mold);
+    ativarUmDedo(mold, veu);
     document.getElementById('btMenos').onclick = function () {{ mudarZoom(-1); }};
     document.getElementById('btMais').onclick = function () {{ mudarZoom(1); }};
     var podeTela = false;
