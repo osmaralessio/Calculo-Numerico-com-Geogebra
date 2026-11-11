@@ -1,7 +1,7 @@
 # Cálculo Numérico Interativo — versão web (Streamlit)
 
 Versão web do livro "Cálculo Numérico Interativo" (Osmar Alessio, UFTM), com o mesmo texto do PDF
-e os 31 aplicativos do GeoGebra abrindo dentro das páginas.
+e os 36 aplicativos do GeoGebra abrindo dentro das páginas.
 
 ## Rodar no seu computador
 

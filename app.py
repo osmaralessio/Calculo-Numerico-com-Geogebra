@@ -52,6 +52,7 @@ paginas = {
         st.Page("paginas/cap3.py", title="3. Sistemas lineares", icon=":material/looks_3:", url_path="sistemas-lineares"),
         st.Page("paginas/cap4.py", title="4. Interpolação", icon=":material/looks_4:", url_path="interpolacao"),
         st.Page("paginas/cap5.py", title="5. Ajuste de curvas", icon=":material/looks_5:", url_path="ajuste-de-curvas"),
+        st.Page("paginas/cap6.py", title="6. Integração numérica", icon=":material/looks_6:", url_path="integracao-numerica"),
     ],
     "Materiais": [
         st.Page("paginas/aplicativos.py", title="Todos os aplicativos", icon=":material/apps:", url_path="aplicativos"),
