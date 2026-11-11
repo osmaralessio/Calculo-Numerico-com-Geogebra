@@ -67,7 +67,7 @@ LARGURA_COLUNA = 1080  # largura útil estimada da coluna de texto (px)
 # ele abre neste tamanho (fração do original) dentro de uma moldura que rola para os lados.
 ESCALA_CELULAR = 0.70  # tamanho inicial no celular
 # Tamanhos oferecidos pelos botões − e + no celular (o último aceito vale para os outros aplicativos).
-ZOOMS_CELULAR = [0.5, 0.6, 0.7, 0.85, 1.0, 1.15, 1.3, 1.5]
+ZOOMS_CELULAR = [0.5, 0.7, 0.85, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0]
 LIMITE_CELULAR = 700        # abaixo desta largura (px) liga o modo celular
 LIMITE_CELULAR_TOQUE = 900  # em telas de toque, liga abaixo desta largura (celular deitado)
 
@@ -159,7 +159,7 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
   var P = {json.dumps(params)};
   var W = {w}, H = {h}, ALT = {altura_iframe - 4}, BARRA = 50;
   var ZOOMS = {json.dumps(ZOOMS_CELULAR)};
-  var API = null, ocupado = false, contador = 0;
+  var API = null, ocupado = false, contador = 0, CELULAR = false;
   P.appletOnLoad = function (api) {{ API = api; ocupado = false; }};
 
   function ehCelular(larg) {{
@@ -218,8 +218,19 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
   function injetar() {{
     contador += 1;
     var caixa = document.getElementById('ggb');
-    caixa.innerHTML = '<div id="ggb' + contador + '"></div>';
-    P.allowUpscale = P.scale > 1;
+    if (CELULAR) {{
+      // No celular a caixa tem exatamente o tamanho do zoom escolhido; o GeoGebra se ajusta a ela
+      // (scaleContainerClass), em vez de se encolher até caber na largura da tela.
+      var cw = Math.ceil(W * P.scale), ch = Math.ceil(H * P.scale);
+      caixa.innerHTML = '<div class="caixaGGB" style="width:' + cw + 'px;height:' + ch + 'px">' +
+                        '<div id="ggb' + contador + '"></div></div>';
+      P.scaleContainerClass = 'caixaGGB';
+      P.autoHeight = false;
+      P.allowUpscale = true;
+    }} else {{
+      caixa.innerHTML = '<div id="ggb' + contador + '"></div>';
+      P.allowUpscale = P.scale > 1;
+    }}
     new GGBApplet(P, true).inject('ggb' + contador);
   }}
 
@@ -265,12 +276,14 @@ def applet(arquivo: str, largura_coluna: int = LARGURA_COLUNA, escala_max: float
     if (podeTela) document.getElementById('btTela').onclick = telaCheia;
     else document.getElementById('btTela').style.display = 'none';
     P.enableShiftDragZoom = false;  // no toque, arrastar não move a janela gráfica por engano
+    P.disableAutoScale = true;     // sem isto o GeoGebra se encolhe sozinho até caber na tela e ignora o zoom
     return s;
   }}
 
   function iniciar() {{
     var larg = document.getElementById('moldura').clientWidth;
     if (ehCelular(larg)) {{
+      CELULAR = true;
       P.scale = modoCelular();
     }} else {{
       P.scale = Math.min({escala_max}, larg / W, ALT / H);
